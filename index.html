@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EZ · Client Profile Prototypes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #1565c0;
+        --text: #424242;
+        --muted: #818181;
+        --border: #efefef;
+        --bg: #f6f7f9;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Roboto, Helvetica, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+      }
+      .topbar {
+        height: 52px;
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 24px;
+      }
+      .logo { font-size: 18px; font-weight: 700; color: var(--primary); letter-spacing: 0.5px; }
+      .topbar .sep { width: 1px; height: 20px; background: var(--border); }
+      .topbar .title { font-size: 14px; color: var(--muted); }
+      .wrap { max-width: 860px; margin: 0 auto; padding: 40px 24px 64px; }
+      h1 { font-size: 26px; font-weight: 700; margin: 0 0 6px; }
+      .subtitle { font-size: 15px; color: var(--muted); margin: 0 0 32px; line-height: 1.5; }
+      .section-label {
+        font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+        text-transform: uppercase; color: var(--muted); margin: 0 0 12px;
+      }
+      .grid { display: grid; gap: 16px; }
+      .card {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 20px 22px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        transition: box-shadow 0.15s, border-color 0.15s, transform 0.05s;
+      }
+      .card:hover {
+        border-color: #bdbdbd;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      }
+      .card:active { transform: translateY(1px); }
+      .card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+      .card-title { font-size: 17px; font-weight: 600; }
+      .badge {
+        font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+        padding: 2px 8px; border-radius: 999px; background: #f3faff; color: var(--primary);
+      }
+      .card-desc { font-size: 14px; color: #676767; line-height: 1.55; margin: 0; }
+      .card-cta {
+        margin-top: 14px; font-size: 13px; font-weight: 500; color: var(--primary);
+        display: inline-flex; align-items: center; gap: 6px;
+      }
+      .footnote {
+        margin-top: 36px; font-size: 12.5px; color: var(--muted); line-height: 1.6;
+        border-top: 1px solid var(--border); padding-top: 20px;
+      }
+      code {
+        background: #eef0f3; padding: 1px 6px; border-radius: 4px;
+        font-size: 12px; color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <span class="logo">ez</span>
+      <span class="sep"></span>
+      <span class="title">Client Profile · Prototypes</span>
+    </div>
+
+    <div class="wrap">
+      <h1>Client Profile prototypes</h1>
+      <p class="subtitle">
+        Interactive prototypes exploring a redesigned Client Profile. Each variation below is a
+        living link — it updates as we publish new iterations, so this is always the latest.
+      </p>
+
+      <p class="section-label">Variations</p>
+      <div class="grid">
+        <!-- VARIATIONS:START -->
+        <a class="card" href="./long-term/">
+          <div class="card-head">
+            <span class="card-title">Long-term vision</span>
+            <span class="badge">Active</span>
+          </div>
+          <p class="card-desc">
+            The full redesign: left sidebar with client basics &amp; actions, a tabbed center panel
+            (Overview, Feed, Notes, Communication, Tasks, Documents), and a persistent
+            &ldquo;Next call&rdquo; working note on the right.
+          </p>
+          <span class="card-cta">Open prototype →</span>
+        </a>
+        <!-- VARIATIONS:END -->
+      </div>
+
+      <p class="footnote">
+        These are click-through prototypes with mock data only — no real client information and no
+        backend. To add a new variation, drop an <code>index.html</code> into a new top-level
+        folder and add a card here, then run <code>./publish.sh</code>.
+      </p>
+    </div>
+  </body>
+</html>

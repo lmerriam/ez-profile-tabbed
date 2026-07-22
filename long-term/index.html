@@ -1,0 +1,2883 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EZ · Client Profile (Tabbed Prototype)</title>
+
+    <!-- Roboto (matches the real app's global font) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      html,
+      body,
+      #root {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        font-family: Roboto, Helvetica, Arial, sans-serif;
+        background: #ffffff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      /* Simple loading state while ESM modules + Babel warm up */
+      #boot {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 12px;
+        color: #818181;
+        font-size: 13px;
+      }
+      .boot-spinner {
+        width: 22px;
+        height: 22px;
+        border: 2px solid #e0e0e0;
+        border-top-color: #1565c0;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+
+    <!-- Pin the whole React/MUI/Emotion graph to one esm.sh build so
+         instances are shared (avoids "multiple React"/Emotion context bugs). -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.3.1",
+          "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
+          "react-dom": "https://esm.sh/react-dom@18.3.1",
+          "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+          "@emotion/react": "https://esm.sh/*@emotion/react@11.13.3",
+          "@emotion/react/": "https://esm.sh/*@emotion/react@11.13.3/",
+          "@emotion/styled": "https://esm.sh/*@emotion/styled@11.13.0",
+          "@emotion/styled/": "https://esm.sh/*@emotion/styled@11.13.0/",
+          "@mui/material": "https://esm.sh/*@mui/material@5.16.7",
+          "@mui/material/": "https://esm.sh/*@mui/material@5.16.7/",
+          "@mui/system": "https://esm.sh/*@mui/system@5.16.7",
+          "@mui/system/": "https://esm.sh/*@mui/system@5.16.7/",
+          "@mui/utils": "https://esm.sh/*@mui/utils@5.16.6",
+          "@mui/utils/": "https://esm.sh/*@mui/utils@5.16.6/",
+          "@mui/base": "https://esm.sh/*@mui/base@5.0.0-beta.40",
+          "@mui/base/": "https://esm.sh/*@mui/base@5.0.0-beta.40/",
+          "@mui/private-theming": "https://esm.sh/*@mui/private-theming@5.16.6",
+          "@mui/private-theming/": "https://esm.sh/*@mui/private-theming@5.16.6/",
+          "@mui/styled-engine": "https://esm.sh/*@mui/styled-engine@5.16.6",
+          "@mui/styled-engine/": "https://esm.sh/*@mui/styled-engine@5.16.6/",
+          "@mui/icons-material/": "https://esm.sh/*@mui/icons-material@5.16.7/",
+          "react-is": "https://esm.sh/react-is@18.3.1",
+          "prop-types": "https://esm.sh/prop-types@15.8.1",
+          "clsx": "https://esm.sh/clsx@2.1.1",
+          "@popperjs/core": "https://esm.sh/@popperjs/core@2.11.8",
+          "react-transition-group": "https://esm.sh/*react-transition-group@4.4.5",
+          "dom-helpers": "https://esm.sh/dom-helpers@5.2.1",
+          "dom-helpers/": "https://esm.sh/dom-helpers@5.2.1/",
+          "@babel/runtime/": "https://esm.sh/@babel/runtime@7.25.6/",
+          "hoist-non-react-statics": "https://esm.sh/hoist-non-react-statics@3.3.2",
+          "stylis": "https://esm.sh/stylis@4.2.0",
+          "@emotion/hash": "https://esm.sh/@emotion/hash@0.9.2",
+          "@emotion/memoize": "https://esm.sh/@emotion/memoize@0.9.0",
+          "@emotion/weak-memoize": "https://esm.sh/@emotion/weak-memoize@0.4.0",
+          "@emotion/unitless": "https://esm.sh/@emotion/unitless@0.10.0",
+          "@emotion/sheet": "https://esm.sh/@emotion/sheet@1.4.0",
+          "@emotion/use-insertion-effect-with-fallbacks": "https://esm.sh/*@emotion/use-insertion-effect-with-fallbacks@1.1.0",
+          "@mui/core-downloads-tracker": "https://esm.sh/@mui/core-downloads-tracker@5.16.7",
+          "@emotion/cache": "https://esm.sh/*@emotion/cache@11.13.1",
+          "@emotion/serialize": "https://esm.sh/*@emotion/serialize@1.3.1",
+          "@emotion/utils": "https://esm.sh/@emotion/utils@1.4.0",
+          "@emotion/is-prop-valid": "https://esm.sh/@emotion/is-prop-valid@1.3.0"
+        }
+      }
+    </script>
+
+    <!-- Babel standalone transpiles the JSX module below in-browser. -->
+    <script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="boot">
+      <div class="boot-spinner"></div>
+      <div>Loading prototype…</div>
+    </div>
+
+    <!-- App source. type="text/babel" + data-type=module so Babel emits ESM
+         and honors the import map above. -->
+    <script type="text/babel" data-type="module" data-presets="react,typescript">
+      import React, { useState, useMemo, useRef, useEffect } from "react";
+      import { createRoot } from "react-dom/client";
+      import {
+        ThemeProvider,
+        createTheme,
+        CssBaseline,
+        Box,
+        Stack,
+        Typography,
+        Button,
+        ButtonBase,
+        IconButton,
+        Avatar,
+        Tabs,
+        Tab,
+        Divider,
+        Chip,
+        TextField,
+        Tooltip,
+        Menu,
+        MenuItem,
+        Card,
+        CardContent,
+        Collapse,
+        InputAdornment,
+        Badge,
+        LinearProgress,
+        Snackbar,
+        Alert,
+      } from "@mui/material";
+
+      import PhoneIcon from "@mui/icons-material/Phone";
+      import SmsIcon from "@mui/icons-material/Sms";
+      import EmailIcon from "@mui/icons-material/Email";
+      import MoreVertIcon from "@mui/icons-material/MoreVert";
+      import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+      import EastIcon from "@mui/icons-material/East";
+      import SearchIcon from "@mui/icons-material/Search";
+      import AddIcon from "@mui/icons-material/Add";
+      import CloseIcon from "@mui/icons-material/Close";
+      import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+      import UploadFileIcon from "@mui/icons-material/UploadFile";
+      import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+      import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
+      import MicOffIcon from "@mui/icons-material/MicOff";
+      import MicIcon from "@mui/icons-material/Mic";
+      import DialpadIcon from "@mui/icons-material/Dialpad";
+      import CallEndIcon from "@mui/icons-material/CallEnd";
+      import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+      import LocalPharmacyOutlinedIcon from "@mui/icons-material/LocalPharmacyOutlined";
+      import EventNoteIcon from "@mui/icons-material/EventNote";
+      import HistoryIcon from "@mui/icons-material/History";
+      import NotesIcon from "@mui/icons-material/Notes";
+      import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
+      import FolderOpenIcon from "@mui/icons-material/FolderOpen";
+      import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
+      import PhoneInTalkIcon from "@mui/icons-material/PhoneInTalk";
+      import EditNoteIcon from "@mui/icons-material/EditNote";
+      import PlaylistAddCheckIcon from "@mui/icons-material/PlaylistAddCheck";
+      import TaskAltIcon from "@mui/icons-material/TaskAlt";
+      import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
+      import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
+      import UpcomingIcon from "@mui/icons-material/Upcoming";
+      import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
+      import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+      import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+      import CallMadeIcon from "@mui/icons-material/CallMade";
+      import CallReceivedIcon from "@mui/icons-material/CallReceived";
+      import PersonIcon from "@mui/icons-material/Person";
+      import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
+      import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
+      import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
+      import SmsOutlinedIcon from "@mui/icons-material/SmsOutlined";
+      import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
+      import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+      import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
+      import TagOutlinedIcon from "@mui/icons-material/TagOutlined";
+      import EmojiEventsOutlinedIcon from "@mui/icons-material/EmojiEventsOutlined";
+      import AssignmentTurnedInOutlinedIcon from "@mui/icons-material/AssignmentTurnedInOutlined";
+      import TimerOutlinedIcon from "@mui/icons-material/TimerOutlined";
+      import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+      import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
+      import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+      import HistoryToggleOffIcon from "@mui/icons-material/HistoryToggleOff";
+      import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
+
+      // ===================================================================
+      // DESIGN TOKENS  (ported from ezrepo: src/styles/tokens.ts + theme.ts)
+      // ===================================================================
+      const colors = {
+        primaryText: "#424242",
+        secondaryText: "#676767",
+        mutedText: "#9a9a9a",
+        labelText: "#818181",
+        timestampText: "#9E9E9E",
+        selectedBg: "#F3FAFF",
+        border: "#d7d7d7",
+        lightBorder: "#efefef",
+        cardHoverBg: "#fafafa",
+        cardHoverBorder: "#bdbdbd",
+        emptyCardBg: "#f5f5f5",
+        searchHighlight: "#fef08a",
+        primary: "#1565c0",
+        green: "#51ad56",
+        red: "#c62828",
+      };
+
+      const STATUS_COLORS = {
+        not_started: "#E0E0E0",
+        in_progress: "#BBDEFB",
+        blocked: "#FFE0B2",
+        waiting: "#FFE0B2",
+        done: "#C8E6C9",
+        will_not_do: "#FFCDD2",
+      };
+
+      const sectionLabelSx = {
+        fontSize: 11,
+        fontWeight: 500,
+        color: colors.labelText,
+        textTransform: "uppercase",
+        letterSpacing: 0.5,
+      };
+      const bodyValueSx = { fontSize: 14, fontWeight: 400, color: colors.primaryText };
+      const mutedTextSx = { fontSize: 12, fontWeight: 500, color: colors.mutedText };
+      const previewCardTitleSx = { fontSize: 12, fontWeight: 500, color: colors.labelText };
+
+      // dialerTheme (ezrepo: src/utils/theme.ts:338) — default MUI palette,
+      // small typography, capitalized buttons, Roboto.
+      const theme = createTheme({
+        palette: {
+          primary: { main: "#1565c0" },
+          success: { main: "#51ad56" },
+          error: { main: "#c62828" },
+          background: { default: "#ffffff" },
+        },
+        typography: {
+          fontFamily: "Roboto, Helvetica, Arial, sans-serif",
+          h1: { fontSize: "18px" },
+          h2: { fontSize: "16px" },
+          h5: { fontSize: "14px" },
+          body1: { fontSize: "14px" },
+          subtitle2: { color: "#595959", fontSize: "0.9rem" },
+        },
+        components: {
+          MuiButton: { styleOverrides: { root: { textTransform: "capitalize" } } },
+          MuiTab: {
+            styleOverrides: {
+              root: { padding: 8, minWidth: 48, minHeight: 48, textTransform: "none" },
+            },
+          },
+        },
+      });
+
+      // Deterministic avatar color (ezrepo: src/utils/user.ts golden-angle hue).
+      const getAvatarColor = (seed) => {
+        if (seed === null || seed === undefined || seed === "") return undefined;
+        const str = String(seed);
+        let hash = 0;
+        for (let i = 0; i < str.length; i += 1)
+          hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        const hue = (Math.abs(hash) * 137.508) % 360;
+        return `hsl(${hue}, 55%, 50%)`;
+      };
+      const getInitials = (name) =>
+        name.split(" ").filter(Boolean).map((n) => n[0]).join("").toUpperCase();
+
+      // ===================================================================
+      // REUSABLE PRIMITIVES  (ported from ezrepo components)
+      // ===================================================================
+      const UserAvatar = ({ name, colorSeed, sx }) => (
+        <Avatar
+          sx={{
+            width: 20,
+            height: 20,
+            fontSize: 8,
+            flexShrink: 0,
+            bgcolor: getAvatarColor(colorSeed ?? name),
+            ...sx,
+          }}
+        >
+          {getInitials(name)}
+        </Avatar>
+      );
+
+      const SectionLabel = ({ children, sx }) => (
+        <Typography sx={{ ...sectionLabelSx, ...sx }}>{children}</Typography>
+      );
+
+      // PreviewCard (ezrepo: components/dialer/shared/PreviewCard.tsx)
+      const PreviewCard = ({ title, onClick, children, hoverActions }) => (
+        <Box
+          sx={{
+            position: "relative",
+            "&:hover .preview-card-hover-actions": { display: "flex" },
+          }}
+        >
+          <ButtonBase
+            onClick={onClick}
+            sx={{
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "stretch",
+              gap: "5px",
+              border: `1px solid ${colors.lightBorder}`,
+              borderRadius: "3px",
+              minHeight: "64px",
+              overflow: "hidden",
+              padding: "12px",
+              "&:hover": {
+                backgroundColor: colors.cardHoverBg,
+                borderColor: colors.cardHoverBorder,
+              },
+            }}
+          >
+            <Typography
+              sx={{
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                textAlign: "left",
+                lineHeight: 1.2,
+                ...previewCardTitleSx,
+              }}
+            >
+              {title}
+            </Typography>
+            {children}
+          </ButtonBase>
+          {hoverActions && (
+            <Box
+              className="preview-card-hover-actions"
+              sx={{
+                display: "none",
+                position: "absolute",
+                top: "12px",
+                right: "12px",
+                gap: "12px",
+              }}
+            >
+              {hoverActions}
+            </Box>
+          )}
+        </Box>
+      );
+
+      const PreviewCardEmpty = ({ text }) => (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: colors.emptyCardBg,
+            borderRadius: "3px",
+            height: "64px",
+            padding: "12px",
+            fontSize: 14,
+            color: colors.labelText,
+          }}
+        >
+          {text}
+        </Box>
+      );
+
+      // CollapsibleCard (ezrepo: components/general/CollapsibleCard.tsx)
+      const CollapsibleCard = ({ title, icon: Icon, defaultExpanded = true, action, children, sx }) => {
+        const [expanded, setExpanded] = useState(defaultExpanded);
+        return (
+          <Card
+            sx={{
+              border: "1px solid #e0e0e0",
+              borderRadius: "8px",
+              boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+              marginBottom: 2,
+              ...sx,
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                padding: "10px 14px",
+                borderBottom: expanded ? "1px solid #e0e0e0" : "none",
+                cursor: "pointer",
+              }}
+              onClick={() => setExpanded((e) => !e)}
+            >
+              {Icon && <Icon sx={{ fontSize: 18, color: colors.labelText, mr: 1 }} />}
+              <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "0.95rem", flex: 1 }}>
+                {title}
+              </Typography>
+              {action && (
+                <Box onClick={(e) => e.stopPropagation()} sx={{ mr: 0.5 }}>{action}</Box>
+              )}
+              <ExpandMoreIcon
+                sx={{
+                  fontSize: 20,
+                  color: colors.mutedText,
+                  transform: expanded ? "rotate(0deg)" : "rotate(-90deg)",
+                  transition: "transform 0.3s",
+                }}
+              />
+            </Box>
+            <Collapse in={expanded} timeout="auto">
+              <CardContent sx={{ py: 2, "&:last-child": { pb: 2 } }}>{children}</CardContent>
+            </Collapse>
+          </Card>
+        );
+      };
+
+      // SlidingPane-ish right drawer
+      const RightPane = ({ open, width = 400, children }) => (
+        <Box
+          sx={{
+            width: open ? width : 0,
+            flexShrink: 0,
+            transition: "width 0.28s cubic-bezier(0.4,0,0.2,1)",
+            overflow: "hidden",
+            borderLeft: open ? `1px solid ${colors.lightBorder}` : "none",
+            boxShadow: open ? "0px 4px 20px 0px #0000001A" : "none",
+            backgroundColor: "#fff",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <Box sx={{ width, height: "100%", display: "flex", flexDirection: "column" }}>
+            {children}
+          </Box>
+        </Box>
+      );
+
+      const StatusChip = ({ status, label }) => (
+        <Chip
+          size="small"
+          label={label}
+          sx={{
+            backgroundColor: STATUS_COLORS[status] || "#E0E0E0",
+            color: colors.primaryText,
+            fontSize: 11,
+            fontWeight: 500,
+            height: 22,
+            borderRadius: "4px",
+          }}
+        />
+      );
+
+      // ===================================================================
+      // MOCK DATA — one rich, realistic Medicare client
+      // ===================================================================
+      const CLIENT = {
+        name: "Dorothy Whitfield",
+        preferredName: "Dot",
+        age: 72,
+        dob: "1953-04-18",
+        pronouns: "she/her",
+        phones: [
+          { label: "Mobile", number: "(415) 555-0182" },
+          { label: "Home", number: "(415) 555-7741" },
+        ],
+        email: "dorothy.whitfield@gmail.com",
+        address: "1420 Elm Street, Apt 3B, Oakland, CA 94612",
+        language: "English",
+        timezone: "Pacific (PT)",
+        status: "Active",
+        plan: {
+          name: "Humana Gold Plus HMO",
+          memberId: "H1036-042-991",
+          effective: "2025-01-01",
+          type: "Medicare Advantage",
+        },
+        careTeam: [
+          { role: "Guide", name: "Marcus Bell", detail: "Primary point of contact" },
+          { role: "Researcher", name: "Priya Nair", detail: "Benefits & appeals" },
+          { role: "Clinician", name: "Dr. Ellen Cho", detail: "Supervising clinician" },
+        ],
+        // People in the client's circle who help with their care.
+        contacts: [
+          { name: "Susan Whitfield", relation: "Daughter · caregiver" },
+          { name: "James Whitfield", relation: "Son" },
+        ],
+        pharmacy: { name: "CVS Pharmacy #4821", address: "2100 Broadway, Oakland, CA" },
+        pcp: "Dr. Alan Reyes — Bay Internal Medicine",
+        medications: [
+          "Lisinopril 10mg — daily",
+          "Metformin 500mg — twice daily",
+          "Atorvastatin 20mg — nightly",
+        ],
+        conditions: ["Type 2 Diabetes", "Hypertension", "Osteoarthritis (knee)"],
+        nextAppt: { what: "Annual Wellness Visit", when: "Mar 3, 2026 · 10:30 AM" },
+
+        // --- Overview-only fields (reused from the current live profile) ----
+        clientId: "KJ7PC8Gys",
+        sex: "Female",
+        dateEligible: "2025-01-03",
+        callbackPreference: "Afternoon (Tue, Wed, Thu)",
+        eligiblePIN: true,
+        eligibleCCM: true,
+        statusDetail: "Active — Engaged in last week",
+        flag: "None",
+        leadsSamePhone: "Carol Millican",
+
+        insurance: {
+          medicareNumber: "2HF0V44GU47",
+          verified: true,
+          supplemental: "Tricare for Life",
+          secondaryUpdated: "2026-01-04 (3rd-party vendor)",
+          signedConsents: true,
+          standardConsentSent: "1 time · last 01/06/26",
+          authConsentSent: "1 time · last 01/12/26",
+          oopNote:
+            "Financial hardship program: if the client is worried about out-of-pocket costs, please evaluate them for financial hardship.",
+        },
+
+        sdoh: [
+          { category: "Health literacy", code: "Z55.6", label: "Problems related to health literacy" },
+          { category: "Food", code: "Z59.48", label: "Other specified lack of adequate food" },
+          { category: "Housing", code: "Z58.89", label: "Other problems related to physical environment" },
+          { category: "Safety", code: "Z60.4", label: "Social exclusion and rejection" },
+          { category: "Mental health", code: "Z65.8", label: "Other specified problems related to psychosocial circumstances" },
+        ],
+
+        additionalPhones: [],
+
+        carePlan:
+          "Objective 1: Arrange reliable transportation and mobility support to reduce fall risk and keep the client independent at home.\n• Milestone 1a: Research and compare local NEMT + paratransit options.\n• Milestone 1b: Secure rollator with DME coverage via PCP prescription.\n• Milestone 1c: Install bathroom grab bars through OTC benefit.\n• Milestone 1d: Follow up on mobility and fall risk at next AWV.\n\nObjective 2: Resolve the denied knee MRI claim and confirm $0 member cost.",
+
+        concreteWins: [
+          {
+            when: "02/08/26",
+            text:
+              "Client was worried about stair safety after a near-fall. Guide ordered bathroom grab bars at $0 via the plan's OTC benefit and started the rollator prescription — a big relief for Dot and her daughter.",
+          },
+        ],
+
+        eligibilitySummary: {
+          visitDate: "Jan 3, 2026 · 7:00 PM",
+          age: 72,
+          clinician: "Dr. Ellen Cho",
+          supervisingPhysician: "Dr. Scott Hopkins",
+          concierge: "Marcus Bell",
+          sections: [
+            "Patient story",
+            "Other SDOH context",
+            "Chronic care management",
+            "Medications",
+            "Miscellaneous",
+            "Supervising physician note",
+          ],
+        },
+
+        timeTracking: {
+          loggedThisMonth: "3.2 hrs",
+          researcherThisMonth: "0.8 hrs",
+          availableThisMonth: "2.6 hrs",
+          loggedAllTime: "11.4 hrs",
+        },
+
+        comms: {
+          clientFacingNumber: "(415) 555-0182",
+          forwardingEmail: "dot.ez@ezhealth.com",
+          forwardToClient: false,
+        },
+
+        welcomeGift: { sentTimes: 1, lastSent: "01/06/26 4:53 PM PT" },
+
+        guideHistory: [
+          { name: "Marcus Bell", range: "Jan 5, 2026 – present" },
+        ],
+      };
+
+      // Calls hold metadata only. The notes taken on a call are first-class
+      // notes (below) linked back via `callId`.
+      //   direction: "outgoing" | "incoming"
+      //   party: who the call was with — { name, kind }
+      //     kind: "client" | "contact" (someone in the client's circle) |
+      //           "third_party" (vendor/service the guide is researching)
+      // Communications share a common shape: medium ("call" | "text" | "email"),
+      // direction ("outgoing" | "incoming"), party {name, kind}, when (display),
+      // ts (sortable epoch ms). Calls carry duration/outcome + a linked note;
+      // texts/emails carry their content inline.
+      const CALLS = [
+        {
+          id: "c1",
+          medium: "call",
+          direction: "outgoing",
+          party: { name: "Dorothy Whitfield", kind: "client" },
+          when: "Feb 12, 2026 · 2:14 PM",
+          ts: new Date("2026-02-12T14:14:00").getTime(),
+          duration: "12m 04s",
+          outcome: "Connected",
+        },
+        {
+          id: "c2",
+          medium: "call",
+          direction: "outgoing",
+          party: { name: "Bay Area Senior Rides", kind: "third_party" },
+          when: "Feb 10, 2026 · 3:20 PM",
+          ts: new Date("2026-02-10T15:20:00").getTime(),
+          duration: "6m 12s",
+          outcome: "Connected",
+        },
+        {
+          id: "c3",
+          medium: "call",
+          direction: "incoming",
+          party: { name: "Susan Whitfield", kind: "contact" },
+          when: "Feb 9, 2026 · 11:02 AM",
+          ts: new Date("2026-02-09T11:02:00").getTime(),
+          duration: "8m 47s",
+          outcome: "Connected",
+        },
+        {
+          id: "c4",
+          medium: "call",
+          direction: "incoming",
+          party: { name: "Dorothy Whitfield", kind: "client" },
+          when: "Jan 28, 2026 · 9:47 AM",
+          ts: new Date("2026-01-28T09:47:00").getTime(),
+          duration: "18m 51s",
+          outcome: "Connected",
+        },
+      ];
+
+      // Texts and emails — interleaved with calls into one communication thread.
+      const MESSAGES = [
+        {
+          id: "m1",
+          medium: "text",
+          direction: "outgoing",
+          party: { name: "Dorothy Whitfield", kind: "client" },
+          when: "Feb 13, 2026 · 9:15 AM",
+          ts: new Date("2026-02-13T09:15:00").getTime(),
+          body: "Hi Dot! Quick reminder that your rollator prescription is in progress with Dr. Reyes. I'll call once it's ready to order. — Marcus",
+        },
+        {
+          id: "m2",
+          medium: "text",
+          direction: "incoming",
+          party: { name: "Dorothy Whitfield", kind: "client" },
+          when: "Feb 13, 2026 · 9:22 AM",
+          ts: new Date("2026-02-13T09:22:00").getTime(),
+          body: "Thank you Marcus. The EOB letter came in the mail yesterday too.",
+        },
+        {
+          id: "m3",
+          medium: "email",
+          direction: "outgoing",
+          party: { name: "Dorothy Whitfield", kind: "client" },
+          when: "Feb 11, 2026 · 4:05 PM",
+          ts: new Date("2026-02-11T16:05:00").getTime(),
+          subject: "Your transportation options",
+          body:
+            "Hi Dot,\n\nAs promised, here's a summary of the transportation services we discussed:\n\n1) Bay Area Senior Rides — $0 for covered medical trips, call 48h ahead.\n2) East Bay Paratransit — $4/trip, ADA application in progress.\n\nI'll follow up once your paratransit eligibility is confirmed.\n\nBest,\nMarcus Bell\nEZ Care Guide",
+        },
+        {
+          id: "m4",
+          medium: "email",
+          direction: "incoming",
+          party: { name: "Bay Area Senior Rides", kind: "third_party" },
+          when: "Feb 10, 2026 · 5:40 PM",
+          ts: new Date("2026-02-10T17:40:00").getTime(),
+          subject: "RE: Coverage confirmation for D. Whitfield",
+          body:
+            "Hi Marcus,\n\nConfirming per our call: Ms. Whitfield qualifies for $0 NEMT under her Humana plan (24 one-way trips/yr). Wheelchair-accessible vans available with 48h notice.\n\nRegards,\nCarla — Bay Area Senior Rides",
+        },
+        {
+          id: "m5",
+          medium: "text",
+          direction: "incoming",
+          party: { name: "Susan Whitfield", kind: "contact" },
+          when: "Feb 8, 2026 · 6:30 PM",
+          ts: new Date("2026-02-08T18:30:00").getTime(),
+          body: "Hi, this is Susan (Dot's daughter). Mom mentioned she almost fell on the stairs. Can we talk about options? Thanks.",
+        },
+      ];
+
+      // Single flat notes collection. No "chronological"/"research" split —
+      // the only differentiator is whether a note is attached to a call
+      // (callId set) or standalone. `updatedTs` drives "Recently updated" sort.
+      const NOTES = [
+        // --- Evolving topic notes (standalone) ---------------------------
+        {
+          id: "topic-transport",
+          title: "Transportation options",
+          author: "Marcus Bell",
+          createdWhen: "6 weeks ago",
+          updatedWhen: "2 days ago",
+          updatedTs: Date.now() - 2 * 24 * 60 * 60 * 1000,
+          callId: null,
+          body:
+            "Ongoing list of transportation services in Dot's area (Oakland 94612). Tracking cost, booking, and coverage as I learn more.\n\n1) BAY AREA SENIOR RIDES\n• Non-emergency medical transport (NEMT). Door-to-door.\n• Cost: $0 for plan-covered medical trips (Humana benefit — 24 one-way trips/yr).\n• Booking: call 48h ahead, (510) 555-2211. Spoke w/ dispatcher Carla 2/10.\n• Confirmed they serve her building; wheelchair-accessible vans available.\n\n2) EAST BAY PARATRANSIT (AC Transit)\n• Requires ADA eligibility application (~3 wks to process). Sent Dot the form 1/30.\n• Cost: $4 per one-way trip. Broader (non-medical) trips too.\n\n3) GOGOGRANDPARENT (Uber/Lyft concierge)\n• No smartphone needed — books rides by phone. Good backup for last-minute.\n• Cost: ride fare + $0.27/min concierge fee. NOT plan-covered.\n\nOPEN QUESTIONS\n• Confirm whether the 24-trip Humana benefit resets calendar or plan year.",
+          versions: [
+            {
+              when: "2 days ago",
+              author: "Marcus Bell",
+              summary: "Confirmed Bay Area Senior Rides details after calling dispatcher",
+              added: [
+                "• Booking: call 48h ahead, (510) 555-2211. Spoke w/ dispatcher Carla 2/10.",
+                "• Confirmed they serve her building; wheelchair-accessible vans available.",
+              ],
+              removed: ["• Booking + coverage TBD — need to call."],
+            },
+            {
+              when: "3 weeks ago",
+              author: "Marcus Bell",
+              summary: "Added GoGoGrandparent as a backup option",
+              added: ["3) GOGOGRANDPARENT (Uber/Lyft concierge)"],
+              removed: [],
+            },
+          ],
+        },
+        {
+          id: "topic-facilities",
+          title: "Care facilities",
+          author: "Marcus Bell",
+          createdWhen: "5 weeks ago",
+          updatedWhen: "1 week ago",
+          updatedTs: Date.now() - 7 * 24 * 60 * 60 * 1000,
+          callId: null,
+          body:
+            "Researching in-home care and facility options in case mobility declines. Dot strongly prefers to age in place; treat facilities as contingency only.\n\nIN-HOME CARE AGENCIES\n• Home Instead (Oakland) — $38/hr, 4hr minimum. Screened caregivers. Waitlist ~1wk.\n• Visiting Angels — $35/hr, 3hr minimum. Can start within days.\n\nADULT DAY PROGRAMS\n• Center for Elders' Independence (PACE) — Dot may qualify; keeps seniors at home w/ coordinated care. Great fit — following up.\n\nASSISTED LIVING (contingency)\n• Piedmont Gardens — ~$5,800/mo. Toured virtually. Long waitlist.\n\nNEXT STEPS\n• Check PACE eligibility with Priya (income + care needs).",
+          versions: [
+            {
+              when: "1 week ago",
+              author: "Marcus Bell",
+              summary: "Added PACE program — likely best fit",
+              added: [
+                "• Center for Elders' Independence (PACE) — Dot may qualify; keeps seniors at home w/ coordinated care. Great fit — following up.",
+                "• Check PACE eligibility with Priya (income + care needs).",
+              ],
+              removed: [],
+            },
+          ],
+        },
+        {
+          id: "topic-mobility",
+          title: "Mobility aids",
+          author: "Marcus Bell",
+          createdWhen: "4 weeks ago",
+          updatedWhen: "4 days ago",
+          updatedTs: Date.now() - 4 * 24 * 60 * 60 * 1000,
+          callId: null,
+          body:
+            "Tracking mobility aid options for Dot's knee osteoarthritis. Goal: reduce fall risk, keep her independent at home.\n\nCURRENT\n• Uses a cane; reports instability on stairs.\n\nOPTIONS RESEARCHED\n• Rollator (4-wheel walker w/ seat) — best for her; seat lets her rest. ~$90 retail.\n  → DME COVERAGE: Humana covers rollators w/ PCP prescription. Asked Dr. Reyes for Rx 2/11.\n• Standard walker — cheaper but no seat; she disliked in the past.\n• Grab bars for bathroom — $0 via plan's OTC benefit ($75/qtr). Ordered 2/8.\n\nNEXT STEPS\n• Confirm rollator model is in Humana's DME catalog before ordering.",
+          versions: [
+            {
+              when: "4 days ago",
+              author: "Marcus Bell",
+              summary: "Confirmed rollator DME coverage; requested Rx",
+              added: [
+                "  → DME COVERAGE: Humana covers rollators w/ PCP prescription. Asked Dr. Reyes for Rx 2/11.",
+              ],
+              removed: ["  → Coverage unknown — check with plan."],
+            },
+            {
+              when: "2 weeks ago",
+              author: "Marcus Bell",
+              summary: "Ordered bathroom grab bars via OTC benefit",
+              added: ["• Grab bars for bathroom — $0 via plan's OTC benefit ($75/qtr). Ordered 2/8."],
+              removed: [],
+            },
+          ],
+        },
+        {
+          id: "topic-mri",
+          title: "Knee MRI claim — denial & appeal tracker",
+          author: "Priya Nair",
+          createdWhen: "3 weeks ago",
+          updatedWhen: "10 days ago",
+          updatedTs: Date.now() - 10 * 24 * 60 * 60 * 1000,
+          callId: null,
+          body:
+            "SUMMARY\nHumana denied the 2/4 knee MRI (CPT 73721) at Bay Imaging. Working the appeal.\n\nDENIAL DETAIL\n• Denial code CO-197: prior authorization not on file.\n• Confirmed with Humana rep (ref #H-88213) that Bay Imaging never submitted the PA before the scan.\n• Member has no financial responsibility while appeal is open — confirmed in writing.\n\nACTIONS TAKEN\n• 2/12 — Requested corrected claim + retro PA from Bay Imaging billing (contact: Renee, ext 4).\n• 2/14 — Bay Imaging submitted retro PA. Reference PA-556120.\n• 2/16 — Humana acknowledged retro PA; routed to clinical review.\n\nSTATUS\nRetro PA approved 2/16. Corrected claim expected to reprocess within 7–10 business days. Will confirm $0 member cost once EOB reposts.\n\nNEXT STEPS\n• Follow up with Humana 2/24 if claim hasn't reprocessed.\n• Send Dot the corrected EOB once available.",
+          versions: [
+            {
+              when: "10 days ago",
+              author: "Priya Nair",
+              summary: "Retro PA approved — updated status & next steps",
+              added: [
+                "• 2/16 — Humana acknowledged retro PA; routed to clinical review.",
+                "Retro PA approved 2/16. Corrected claim expected to reprocess within 7–10 business days. Will confirm $0 member cost once EOB reposts.",
+                "• Follow up with Humana 2/24 if claim hasn't reprocessed.",
+              ],
+              removed: [
+                "Drafting a corrected claim + PA retro request. Expected resolution ~10 business days.",
+              ],
+            },
+            {
+              when: "2 weeks ago",
+              author: "Priya Nair",
+              summary: "Added confirmation that member owes $0 during appeal",
+              added: [
+                "• Member has no financial responsibility while appeal is open — confirmed in writing.",
+              ],
+              removed: [],
+            },
+          ],
+        },
+        {
+          id: "topic-dental",
+          title: "Dental benefits",
+          author: "Priya Nair",
+          createdWhen: "3 weeks ago",
+          updatedWhen: "3 weeks ago",
+          updatedTs: Date.now() - 21 * 24 * 60 * 60 * 1000,
+          callId: null,
+          body:
+            "Humana Gold Plus includes $2,000/yr dental allowance. Cleanings 100% covered 2x/yr. Major services 50% after $0 deductible. Shared summary with Dot.\n\nIN-NETWORK DENTISTS NEAR OAKLAND\n• Lakeshore Dental — accepting new patients, 1.2mi.\n• Grand Ave Family Dental — 0.8mi, good reviews.",
+          versions: [],
+        },
+        // --- Call notes (attached to a call, no title — date only) --------
+        {
+          id: "cn1",
+          title: "",
+          author: "Marcus Bell",
+          createdWhen: "2 days ago",
+          updatedWhen: "2 days ago",
+          updatedTs: Date.now() - 2 * 24 * 60 * 60 * 1000,
+          callId: "c1", // outgoing → client, 2/12
+          body:
+            "Dot worried about the denied knee MRI claim. Reassured her it's a prior-auth coding issue; Priya is appealing and she owes $0 meanwhile. Also confirmed she's interested in the rollator. Calmer by end of call.\n\nAction: Priya to resubmit; ask Dr. Reyes for rollator Rx.",
+          versions: [],
+        },
+        {
+          id: "cn2",
+          title: "",
+          author: "Marcus Bell",
+          createdWhen: "4 days ago",
+          updatedWhen: "4 days ago",
+          updatedTs: Date.now() - 4 * 24 * 60 * 60 * 1000,
+          callId: "c2", // outgoing → third party (Bay Area Senior Rides)
+          body:
+            "Called Bay Area Senior Rides dispatcher (Carla). Confirmed NEMT is $0 under Humana benefit (24 one-way trips/yr), wheelchair-accessible vans, 48h booking. They serve Dot's building. Added details to Transportation options note.",
+          versions: [],
+        },
+        {
+          id: "cn3",
+          title: "",
+          author: "Marcus Bell",
+          createdWhen: "5 days ago",
+          updatedWhen: "5 days ago",
+          updatedTs: Date.now() - 5 * 24 * 60 * 60 * 1000,
+          callId: "c3", // incoming ← contact (Susan, daughter)
+          body:
+            "Susan (daughter) called concerned about Dot's stairs after a near-fall. Reassured her we're pursuing a rollator + bathroom grab bars. She'll help set up the grab bars when they arrive. Gave her the AWV scheduling context.",
+          versions: [],
+        },
+        {
+          id: "cn4",
+          title: "",
+          author: "Marcus Bell",
+          createdWhen: "3 weeks ago",
+          updatedWhen: "3 weeks ago",
+          updatedTs: Date.now() - 20 * 24 * 60 * 60 * 1000,
+          callId: "c4", // incoming ← client, 1/28
+          body:
+            "Dot called about dental benefits. Walked through coverage and shared two in-network dentists nearby. Very appreciative. No open items.",
+          versions: [],
+        },
+      ];
+
+      const findDoc = (id) => DOCUMENTS.find((d) => d.id === id);
+
+      const TASKS = [
+        {
+          id: "t1",
+          title: "Resubmit knee MRI claim with prior auth",
+          status: "in_progress",
+          statusLabel: "In progress",
+          assignee: "Priya Nair",
+          due: "Feb 20, 2026",
+          detail:
+            "Corrected claim + retro PA request. Follow the imaging center's PA reference once obtained.",
+        },
+        {
+          id: "t2",
+          title: "Schedule Annual Wellness Visit",
+          status: "waiting",
+          statusLabel: "Waiting on call back",
+          assignee: "Marcus Bell",
+          due: "Mar 1, 2026",
+          detail: "Client needs to confirm availability. Left VM 2/9.",
+        },
+        {
+          id: "t3",
+          title: "Confirm updated mailing address downstream",
+          status: "done",
+          statusLabel: "Done",
+          assignee: "System",
+          due: "Feb 1, 2026",
+          detail: "Address synced to plan + pharmacy.",
+        },
+        {
+          id: "t4",
+          title: "Send dental provider list near Oakland",
+          status: "not_started",
+          statusLabel: "Not started",
+          assignee: "Marcus Bell",
+          due: "Feb 24, 2026",
+          detail: "Pull in-network dentists within 10mi; email PDF.",
+        },
+      ];
+
+      const DOCUMENTS = [
+        { id: "d1", name: "Humana_EOB_Feb2026.pdf", size: "148 KB", when: "1 day ago", by: "Priya Nair" },
+        { id: "d2", name: "Plan_Benefits_Summary_2026.pdf", size: "612 KB", when: "3 weeks ago", by: "Priya Nair" },
+        { id: "d3", name: "AWV_Prep_Checklist.pdf", size: "88 KB", when: "1 month ago", by: "Marcus Bell" },
+        { id: "d4", name: "Signed_HIPAA_Auth.pdf", size: "210 KB", when: "2 months ago", by: "System" },
+      ];
+
+      // Structured, typed activity events. Each item knows its source so the
+      // guide can jump straight to it. Research-note updates carry a diff so the
+      // "latest changes" to a long evolving note are highlighted inline.
+      const ACTIVITY = [
+        {
+          id: "e2",
+          type: "research_update",
+          who: "Marcus Bell",
+          when: "2 days ago",
+          source: { kind: "note", id: "topic-transport" },
+          title: "Transportation options",
+          summary: "Confirmed Bay Area Senior Rides details after calling dispatcher",
+          added: [
+            "• Booking: call 48h ahead, (510) 555-2211. Spoke w/ dispatcher Carla 2/10.",
+            "• Confirmed they serve her building; wheelchair-accessible vans available.",
+          ],
+          removed: ["• Booking + coverage TBD — need to call."],
+        },
+        {
+          id: "e3",
+          type: "call",
+          who: "Marcus Bell",
+          when: "2 days ago",
+          source: { kind: "call", id: "c1" },
+          title: "Outgoing call · Dorothy Whitfield (client)",
+          preview:
+            "Dot worried about the denied knee MRI claim. Reassured her; confirmed rollator interest. Calmer by end of call.",
+        },
+        {
+          id: "e4",
+          type: "call",
+          who: "Marcus Bell",
+          when: "4 days ago",
+          source: { kind: "call", id: "c2" },
+          title: "Outgoing call · Bay Area Senior Rides (third party)",
+          preview:
+            "Called dispatcher (Carla). Confirmed $0 NEMT under Humana benefit, accessible vans, 48h booking. Added to Transportation options note.",
+        },
+        {
+          id: "e5",
+          type: "research_update",
+          who: "Marcus Bell",
+          when: "4 days ago",
+          source: { kind: "note", id: "topic-mobility" },
+          title: "Mobility aids",
+          summary: "Confirmed rollator DME coverage; requested Rx",
+          added: [
+            "  → DME COVERAGE: Humana covers rollators w/ PCP prescription. Asked Dr. Reyes for Rx 2/11.",
+          ],
+          removed: ["  → Coverage unknown — check with plan."],
+        },
+        {
+          id: "e6",
+          type: "task_created",
+          who: "Marcus Bell",
+          when: "4 days ago",
+          source: { kind: "task", id: "t1" },
+          title: "Resubmit knee MRI claim with prior auth",
+          meta: "Assigned to Priya Nair · Due Feb 20, 2026",
+        },
+        {
+          id: "e7",
+          type: "call",
+          who: "Marcus Bell",
+          when: "5 days ago",
+          source: { kind: "call", id: "c3" },
+          title: "Incoming call · Susan Whitfield (contact)",
+          preview:
+            "Daughter called concerned about Dot's stairs after a near-fall. Reassured her about rollator + grab bars plan.",
+        },
+        {
+          id: "e8",
+          type: "research_update",
+          who: "Marcus Bell",
+          when: "1 week ago",
+          source: { kind: "note", id: "topic-facilities" },
+          title: "Care facilities",
+          summary: "Added PACE program — likely best fit",
+          added: [
+            "• Center for Elders' Independence (PACE) — Dot may qualify; keeps seniors at home w/ coordinated care. Great fit — following up.",
+          ],
+          removed: [],
+        },
+        {
+          id: "e9",
+          type: "document",
+          who: "Priya Nair",
+          when: "1 week ago",
+          source: { kind: "document", id: "d1" },
+          title: "Humana_EOB_Feb2026.pdf",
+          preview: "Explanation of Benefits reflecting the reprocessed knee MRI claim.",
+        },
+        {
+          id: "e1",
+          type: "research_update",
+          who: "Priya Nair",
+          when: "10 days ago",
+          source: { kind: "note", id: "topic-mri" },
+          title: "Knee MRI claim — denial & appeal tracker",
+          summary: "Retro PA approved — updated status & next steps",
+          added: [
+            "• 2/16 — Humana acknowledged retro PA; routed to clinical review.",
+            "Retro PA approved 2/16. Corrected claim expected to reprocess within 7–10 business days. Will confirm $0 member cost once EOB reposts.",
+            "• Follow up with Humana 2/24 if claim hasn't reprocessed.",
+          ],
+          removed: [
+            "Drafting a corrected claim + PA retro request. Expected resolution ~10 business days.",
+          ],
+        },
+        {
+          id: "e10",
+          type: "call",
+          who: "Marcus Bell",
+          when: "3 weeks ago",
+          source: { kind: "call", id: "c4" },
+          title: "Incoming call · Dorothy Whitfield (client)",
+          preview:
+            "Dot called about dental benefits. Walked through coverage; shared two in-network dentists nearby.",
+        },
+      ];
+
+      // ===================================================================
+      // LEFT SIDEBAR
+      // ===================================================================
+      const InfoRow = ({ label, value }) => (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+          <SectionLabel>{label}</SectionLabel>
+          <Typography sx={bodyValueSx}>{value}</Typography>
+        </Box>
+      );
+
+      const LeftSidebar = ({ onStartCall, onStartText, callActive, nextCallOpen, onToggleNextCall }) => (
+        <Box
+          sx={{
+            width: 300,
+            flexShrink: 0,
+            borderRight: `1px solid ${colors.lightBorder}`,
+            height: "100%",
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {/* Identity header */}
+          <Box sx={{ p: 2.5, borderBottom: `1px solid ${colors.lightBorder}` }}>
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <UserAvatar
+                name={CLIENT.name}
+                colorSeed={CLIENT.name}
+                sx={{ width: 48, height: 48, fontSize: 18 }}
+              />
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: 16, fontWeight: 700, color: colors.primaryText, lineHeight: 1.2 }}>
+                  {CLIENT.name}
+                </Typography>
+                <Typography sx={{ ...mutedTextSx, mt: 0.25 }}>
+                  “{CLIENT.preferredName}” · {CLIENT.age} · {CLIENT.pronouns}
+                </Typography>
+                <Chip
+                  size="small"
+                  label={CLIENT.status}
+                  sx={{
+                    mt: 0.75,
+                    height: 20,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    backgroundColor: "#C8E6C9",
+                    color: "#2e7d32",
+                  }}
+                />
+              </Box>
+            </Stack>
+
+            {/* Top-level action buttons */}
+            <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+              <Button
+                fullWidth
+                variant="contained"
+                color="success"
+                startIcon={<PhoneIcon />}
+                onClick={onStartCall}
+                disabled={callActive}
+                sx={{ fontSize: 12 }}
+              >
+                {callActive ? "On call" : "Call"}
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<SmsIcon />}
+                onClick={onStartText}
+                sx={{ fontSize: 12 }}
+              >
+                Text
+              </Button>
+              <Tooltip title="Email client">
+                <IconButton
+                  sx={{ border: `1px solid ${colors.border}`, borderRadius: "4px" }}
+                  onClick={onStartText}
+                >
+                  <EmailIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+
+            {/* Next-call working note toggle */}
+            <Button
+              fullWidth
+              variant={nextCallOpen ? "outlined" : "text"}
+              startIcon={<UpcomingIcon />}
+              onClick={onToggleNextCall}
+              disabled={callActive}
+              sx={{
+                mt: 1,
+                fontSize: 12,
+                justifyContent: "flex-start",
+                color: nextCallOpen ? colors.primary : colors.labelText,
+                borderColor: colors.border,
+              }}
+            >
+              {nextCallOpen ? "Next-call note (open)" : "Next-call note"}
+            </Button>
+          </Box>
+
+          {/* Basic info */}
+          <Box sx={{ p: 2.5, display: "flex", flexDirection: "column", gap: 2 }}>
+            <SectionLabel sx={{ fontSize: 11 }}>Contact</SectionLabel>
+            {CLIENT.phones.map((p) => (
+              <InfoRow key={p.number} label={p.label} value={p.number} />
+            ))}
+            <InfoRow label="Email" value={CLIENT.email} />
+            <InfoRow label="Address" value={CLIENT.address} />
+            <InfoRow label="Time zone" value={CLIENT.timezone} />
+          </Box>
+
+          <Divider sx={{ borderColor: colors.lightBorder }} />
+
+          {/* Featured card: Plan */}
+          <Box sx={{ p: 2.5, display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <SectionLabel>Insurance plan</SectionLabel>
+            <Box
+              sx={{
+                border: `1px solid ${colors.lightBorder}`,
+                borderRadius: "3px",
+                p: 1.5,
+                display: "flex",
+                flexDirection: "column",
+                gap: 0.75,
+              }}
+            >
+              <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText }}>
+                {CLIENT.plan.name}
+              </Typography>
+              <Typography sx={mutedTextSx}>{CLIENT.plan.type}</Typography>
+              <Divider sx={{ borderColor: colors.lightBorder, my: 0.5 }} />
+              <Stack direction="row" justifyContent="space-between">
+                <SectionLabel>Member ID</SectionLabel>
+                <Typography sx={{ fontSize: 12, color: colors.primaryText }}>{CLIENT.plan.memberId}</Typography>
+              </Stack>
+              <Stack direction="row" justifyContent="space-between">
+                <SectionLabel>Effective</SectionLabel>
+                <Typography sx={{ fontSize: 12, color: colors.primaryText }}>{CLIENT.plan.effective}</Typography>
+              </Stack>
+            </Box>
+          </Box>
+
+          <Divider sx={{ borderColor: colors.lightBorder }} />
+
+          {/* Featured card: Care team */}
+          <Box sx={{ p: 2.5, display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <SectionLabel>Care team</SectionLabel>
+            <Stack spacing={1.25}>
+              {CLIENT.careTeam.map((m) => (
+                <Stack key={m.name} direction="row" spacing={1.25} alignItems="center">
+                  <UserAvatar name={m.name} colorSeed={m.name} sx={{ width: 28, height: 28, fontSize: 11 }} />
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: colors.primaryText, lineHeight: 1.2 }}>
+                      {m.name}
+                    </Typography>
+                    <Typography sx={{ fontSize: 11, color: colors.labelText }}>
+                      {m.role} · {m.detail}
+                    </Typography>
+                  </Box>
+                </Stack>
+              ))}
+            </Stack>
+          </Box>
+        </Box>
+      );
+
+      // ===================================================================
+      // CENTER TAB PANELS
+      // ===================================================================
+      const PanelWrap = ({ children }) => (
+        <Box sx={{ p: 3, overflowY: "auto", height: "100%" }}>{children}</Box>
+      );
+
+      // Small key/value row used inside overview cards.
+      const KV = ({ label, value, mono }) => (
+        <Stack direction="row" spacing={1} justifyContent="space-between" alignItems="baseline">
+          <Typography sx={{ fontSize: 12.5, color: colors.labelText, flexShrink: 0 }}>{label}</Typography>
+          <Typography sx={{ fontSize: 13, color: colors.primaryText, textAlign: "right", fontFamily: mono ? "monospace" : "inherit" }}>
+            {value}
+          </Typography>
+        </Stack>
+      );
+
+      const YesNo = ({ value }) => (
+        <Chip
+          size="small"
+          label={value ? "Yes" : "No"}
+          sx={{
+            height: 18,
+            fontSize: 10,
+            fontWeight: 600,
+            backgroundColor: value ? "#C8E6C9" : "#EEEEEE",
+            color: value ? "#2e7d32" : colors.labelText,
+          }}
+        />
+      );
+
+      // Note: cards whose functions moved to a dedicated tab (Notes, Documents,
+      // Communication log, Tasks) are intentionally omitted. During staged
+      // rollout the remaining live cards + action buttons are reused here.
+      const OverviewPanel = ({ onAction, onGoTab }) => {
+        const ins = CLIENT.insurance;
+        return (
+          <PanelWrap>
+            {/* Reused top action buttons from the current live profile */}
+            <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: "wrap", gap: 1 }}>
+              {[
+                { label: "Edit Care Plan", icon: <EditNoteIcon /> },
+                { label: "Create Clinician Escalation", icon: <WarningAmberIcon /> },
+                { label: "Create Task", icon: <AddIcon /> },
+                { label: "Send Authorization Consent", icon: <VerifiedUserOutlinedIcon /> },
+                { label: "Re-send Welcome Gift", icon: <CardGiftcardIcon /> },
+              ].map((b) => (
+                <Button
+                  key={b.label}
+                  size="small"
+                  variant="outlined"
+                  startIcon={b.icon}
+                  onClick={() => onAction(b.label)}
+                  sx={{ fontSize: 12, borderColor: colors.border, color: colors.secondaryText, textTransform: "none" }}
+                >
+                  {b.label}
+                </Button>
+              ))}
+            </Stack>
+
+            {/* Masonry-style multi-column card flow */}
+            <Box
+              sx={{
+                columnGap: 2,
+                columnWidth: 340,
+                "& > *": { breakInside: "avoid" },
+              }}
+            >
+              {/* BASIC INFO — fields not already in the left sidebar */}
+              <CollapsibleCard title="Basic info" icon={InfoOutlinedIcon}>
+                <Stack spacing={1.25}>
+                  <KV label="Client ID" value={CLIENT.clientId} mono />
+                  <KV label="Preferred name" value={CLIENT.preferredName} />
+                  <KV label="Date of birth" value={`${CLIENT.dob} (age ${CLIENT.age})`} />
+                  <KV label="Sex" value={CLIENT.sex} />
+                  <KV label="Language" value={CLIENT.language} />
+                  <KV label="Date eligible" value={CLIENT.dateEligible} />
+                  <KV label="Callback preference" value={CLIENT.callbackPreference} />
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography sx={{ fontSize: 12.5, color: colors.labelText }}>Eligible for PIN</Typography>
+                    <YesNo value={CLIENT.eligiblePIN} />
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography sx={{ fontSize: 12.5, color: colors.labelText }}>Eligible for CCM</Typography>
+                    <YesNo value={CLIENT.eligibleCCM} />
+                  </Stack>
+                  <KV label="Status" value={CLIENT.statusDetail} />
+                  <KV label="Flag" value={CLIENT.flag} />
+                  <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+                    <Typography sx={{ fontSize: 12.5, color: colors.labelText }}>Leads with same phone</Typography>
+                    <Typography sx={{ fontSize: 13, color: colors.primary }}>{CLIENT.leadsSamePhone}</Typography>
+                  </Stack>
+                </Stack>
+              </CollapsibleCard>
+
+              {/* INSURANCE & CONSENTS */}
+              <CollapsibleCard title="Insurance & consents" icon={VerifiedUserOutlinedIcon}>
+                <Stack spacing={1.25}>
+                  <KV label="Medicare number" value={ins.medicareNumber} mono />
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography sx={{ fontSize: 12.5, color: colors.labelText }}>Insurance verified</Typography>
+                    <YesNo value={ins.verified} />
+                  </Stack>
+                  <KV label="Supplemental" value={ins.supplemental} />
+                  <KV label="Secondary updated" value={ins.secondaryUpdated} />
+                  <Divider sx={{ borderColor: colors.lightBorder }} />
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography sx={{ fontSize: 12.5, color: colors.labelText }}>Signed consents</Typography>
+                    <YesNo value={ins.signedConsents} />
+                  </Stack>
+                  <KV label="Standard Medicare consent" value={ins.standardConsentSent} />
+                  <KV label="Authorization consent" value={ins.authConsentSent} />
+                  <Box sx={{ backgroundColor: "#FFF8E1", borderRadius: "3px", p: 1, mt: 0.5 }}>
+                    <Typography sx={{ fontSize: 12, color: "#8a6d00", lineHeight: 1.4 }}>
+                      <Box component="span" sx={{ fontWeight: 600 }}>Out-of-pocket cost — </Box>
+                      {ins.oopNote}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </CollapsibleCard>
+
+              {/* CONCRETE WINS */}
+              <CollapsibleCard title="Concrete wins" icon={EmojiEventsOutlinedIcon}>
+                <Stack spacing={1.5}>
+                  {CLIENT.concreteWins.map((w, i) => (
+                    <Box key={i}>
+                      <Typography sx={{ fontSize: 11.5, color: colors.timestampText, mb: 0.25 }}>{w.when}</Typography>
+                      <Typography sx={{ fontSize: 13, color: colors.primaryText, lineHeight: 1.55 }}>{w.text}</Typography>
+                    </Box>
+                  ))}
+                  <Button size="small" startIcon={<AddIcon />} onClick={() => onAction("Record win")} sx={{ fontSize: 11, color: colors.primary, alignSelf: "flex-start" }}>
+                    Record win
+                  </Button>
+                </Stack>
+              </CollapsibleCard>
+
+              {/* CARE PLAN */}
+              <CollapsibleCard title="Care plan" icon={ArticleOutlinedIcon}>
+                <Typography sx={{ fontSize: 13, color: colors.primaryText, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                  {CLIENT.carePlan}
+                </Typography>
+                <Button size="small" startIcon={<EditNoteIcon />} onClick={() => onAction("Edit Care Plan")} sx={{ fontSize: 11, color: colors.primary, mt: 1 }}>
+                  Edit care plan
+                </Button>
+              </CollapsibleCard>
+
+              {/* DIAGNOSES & SDOH CODES */}
+              <CollapsibleCard title="Diagnoses & SDOH codes" icon={TagOutlinedIcon}>
+                <Stack spacing={1.5}>
+                  {CLIENT.sdoh.map((s) => (
+                    <Box key={s.code}>
+                      <SectionLabel>{s.category}</SectionLabel>
+                      <Stack direction="row" spacing={1} sx={{ mt: 0.25 }}>
+                        <Typography sx={{ fontSize: 13, fontWeight: 600, color: colors.primary, fontFamily: "monospace", flexShrink: 0 }}>
+                          {s.code}
+                        </Typography>
+                        <Typography sx={{ fontSize: 13, color: colors.primaryText }}>{s.label}</Typography>
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
+              </CollapsibleCard>
+
+              {/* ELIGIBILITY NOTE SUMMARY */}
+              <CollapsibleCard title="Eligibility note summary" icon={AssignmentTurnedInOutlinedIcon} defaultExpanded={false}>
+                <Stack spacing={1.25}>
+                  <KV label="Date of visit" value={CLIENT.eligibilitySummary.visitDate} />
+                  <KV label="Age" value={CLIENT.eligibilitySummary.age} />
+                  <KV label="Clinician" value={CLIENT.eligibilitySummary.clinician} />
+                  <KV label="Supervising physician" value={CLIENT.eligibilitySummary.supervisingPhysician} />
+                  <KV label="Concierge" value={CLIENT.eligibilitySummary.concierge} />
+                  <Divider sx={{ borderColor: colors.lightBorder }} />
+                  {CLIENT.eligibilitySummary.sections.map((s) => (
+                    <Stack key={s} direction="row" spacing={0.5} alignItems="center">
+                      <ExpandMoreIcon sx={{ fontSize: 16, color: colors.mutedText, transform: "rotate(-90deg)" }} />
+                      <Typography sx={{ fontSize: 13, color: colors.secondaryText }}>{s}</Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+              </CollapsibleCard>
+
+              {/* TIME TRACKING */}
+              <CollapsibleCard title="Time tracking" icon={TimerOutlinedIcon} defaultExpanded={false}>
+                <Stack spacing={1}>
+                  <KV label="Logged this month" value={CLIENT.timeTracking.loggedThisMonth} />
+                  <KV label="Researcher hrs this month" value={CLIENT.timeTracking.researcherThisMonth} />
+                  <KV label="Available this month" value={CLIENT.timeTracking.availableThisMonth} />
+                  <KV label="Logged all time" value={CLIENT.timeTracking.loggedAllTime} />
+                  <Button size="small" startIcon={<AddIcon />} onClick={() => onAction("Log time block")} sx={{ fontSize: 11, color: colors.primary, alignSelf: "flex-start" }}>
+                    Log time block
+                  </Button>
+                </Stack>
+              </CollapsibleCard>
+
+              {/* CLIENT COMMUNICATIONS (settings only — log lives in Communication tab) */}
+              <CollapsibleCard title="Communication settings" icon={SettingsOutlinedIcon} defaultExpanded={false}>
+                <Stack spacing={1.25}>
+                  <KV label="Client-facing number" value={CLIENT.comms.clientFacingNumber} />
+                  <KV label="Forwarding email" value={CLIENT.comms.forwardingEmail} />
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography sx={{ fontSize: 12.5, color: colors.labelText }}>Forward mail to client</Typography>
+                    <YesNo value={CLIENT.comms.forwardToClient} />
+                  </Stack>
+                  <ButtonBase
+                    onClick={() => onGoTab("comms")}
+                    sx={{ alignSelf: "flex-start", fontSize: 12, fontWeight: 500, color: colors.primary, mt: 0.5 }}
+                  >
+                    View communication thread →
+                  </ButtonBase>
+                </Stack>
+              </CollapsibleCard>
+
+              {/* WELCOME CALL / GIFT */}
+              <CollapsibleCard title="Welcome" icon={CardGiftcardIcon} defaultExpanded={false}>
+                <Stack spacing={1}>
+                  <KV label="Welcome gift sent" value={`${CLIENT.welcomeGift.sentTimes}× · last ${CLIENT.welcomeGift.lastSent}`} />
+                  <Stack direction="row" spacing={2}>
+                    <ButtonBase onClick={() => onAction("Welcome call plan")} sx={{ fontSize: 12, fontWeight: 500, color: colors.primary }}>
+                      Welcome call plan →
+                    </ButtonBase>
+                    <ButtonBase onClick={() => onAction("Welcome call notes")} sx={{ fontSize: 12, fontWeight: 500, color: colors.primary }}>
+                      Welcome call notes →
+                    </ButtonBase>
+                  </Stack>
+                </Stack>
+              </CollapsibleCard>
+
+              {/* ADDITIONAL PHONE NUMBERS */}
+              <CollapsibleCard title="Additional phone numbers" icon={PhoneIcon} defaultExpanded={false}>
+                {CLIENT.additionalPhones.length ? (
+                  <Stack spacing={1}>
+                    {CLIENT.additionalPhones.map((p) => (
+                      <KV key={p} label="Phone" value={p} />
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography sx={{ fontSize: 13, color: colors.mutedText, fontStyle: "italic" }}>
+                    No additional numbers.
+                  </Typography>
+                )}
+                <Button size="small" startIcon={<AddIcon />} onClick={() => onAction("Add number")} sx={{ fontSize: 11, color: colors.primary, mt: 1 }}>
+                  Add number
+                </Button>
+              </CollapsibleCard>
+
+              {/* GUIDE HISTORY */}
+              <CollapsibleCard title="Guide history" icon={HistoryToggleOffIcon} defaultExpanded={false}>
+                <Stack spacing={1}>
+                  {CLIENT.guideHistory.map((g) => (
+                    <Stack key={g.name} direction="row" spacing={1} alignItems="center">
+                      <UserAvatar name={g.name} colorSeed={g.name} sx={{ width: 22, height: 22, fontSize: 9 }} />
+                      <Box>
+                        <Typography sx={{ fontSize: 13, fontWeight: 500, color: colors.primaryText }}>{g.name}</Typography>
+                        <Typography sx={{ fontSize: 11.5, color: colors.labelText }}>{g.range}</Typography>
+                      </Box>
+                    </Stack>
+                  ))}
+                </Stack>
+              </CollapsibleCard>
+            </Box>
+          </PanelWrap>
+        );
+      };
+
+      // --- Activity type config: icon, tint, verb, and source label ---------
+      const ACTIVITY_META = {
+        research_update: { verb: "updated research note", tint: "#9164ff", bg: "#f3eeff", Icon: EditNoteIcon, cta: "Open note" },
+        note: { verb: "added a note", tint: colors.primary, bg: "#F3FAFF", Icon: NotesIcon, cta: "Open note" },
+        call: { verb: "logged a call", tint: colors.green, bg: "#eef7ef", Icon: PhoneInTalkIcon, cta: "Open call" },
+        task_created: { verb: "created a task", tint: "#00897b", bg: "#e6f4f2", Icon: PlaylistAddCheckIcon, cta: "Open task" },
+        task_status: { verb: "updated a task", tint: "#00897b", bg: "#e6f4f2", Icon: TaskAltIcon, cta: "Open task" },
+        document: { verb: "uploaded a document", tint: "#ef6c00", bg: "#fff3e0", Icon: DescriptionOutlinedIcon, cta: "Open document" },
+        system: { verb: "system update", tint: colors.mutedText, bg: colors.emptyCardBg, Icon: SettingsSuggestIcon, cta: null },
+      };
+
+      // Highlights just the newly-added text from a note update (no removed
+      // content) — a lightweight "what's new" view rather than a full diff.
+      const AddedBlock = ({ added = [] }) => (
+        <Box
+          sx={{
+            mt: 1,
+            border: `1px solid ${colors.lightBorder}`,
+            borderRadius: "3px",
+            overflow: "hidden",
+            fontSize: 12.5,
+            lineHeight: 1.5,
+          }}
+        >
+          {added.map((line, i) => (
+            <Box
+              key={"a" + i}
+              sx={{
+                px: 1.25,
+                py: 0.5,
+                backgroundColor: "#eaf7ec",
+                color: "#256b2b",
+                borderBottom: i < added.length - 1 ? `1px solid ${colors.lightBorder}` : "none",
+              }}
+            >
+              {line}
+            </Box>
+          ))}
+        </Box>
+      );
+
+      // A single feed entry. Collapsed: type marker, headline, and the
+      // "what's new" gist (added text for updates, a short preview otherwise).
+      // Expanded: reveals the author, full content, and the "go to source" link.
+      const FeedItem = ({ item, isLast, onNavigate }) => {
+        const [expanded, setExpanded] = useState(false);
+        const meta = ACTIVITY_META[item.type];
+        const { Icon } = meta;
+        const bodyText = item.full || item.preview || null;
+
+        return (
+          <Stack direction="row" spacing={1.5} sx={{ position: "relative", pb: 2.5 }}>
+            {/* timeline rail */}
+            {!isLast && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  left: 15,
+                  top: 34,
+                  bottom: 0,
+                  width: "1px",
+                  backgroundColor: colors.lightBorder,
+                }}
+              />
+            )}
+            {/* type marker */}
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                backgroundColor: meta.bg,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                zIndex: 1,
+              }}
+            >
+              <Icon sx={{ fontSize: 18, color: meta.tint }} />
+            </Box>
+
+            {/* card — click to expand */}
+            <Box
+              onClick={() => setExpanded((e) => !e)}
+              sx={{
+                flex: 1,
+                minWidth: 0,
+                border: `1px solid ${expanded ? colors.cardHoverBorder : colors.lightBorder}`,
+                borderRadius: "3px",
+                p: 1.5,
+                cursor: "pointer",
+                "&:hover": { backgroundColor: expanded ? "transparent" : colors.cardHoverBg },
+              }}
+            >
+              {/* header: verb + timestamp (author hidden until expanded) */}
+              <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.25 }}>
+                <Typography sx={{ fontSize: 12.5, color: colors.labelText }}>{meta.verb}</Typography>
+                <Box sx={{ flex: 1 }} />
+                <Typography sx={{ fontSize: 11, color: colors.timestampText, whiteSpace: "nowrap" }}>{item.when}</Typography>
+              </Stack>
+
+              {/* headline / source title */}
+              <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText, mt: 0.25 }}>
+                {item.title}
+              </Typography>
+
+              {/* note updates: show summary + the newly added text (green only) */}
+              {item.type === "research_update" && (
+                <>
+                  {item.summary && (
+                    <Typography sx={{ fontSize: 12.5, color: colors.labelText, fontStyle: "italic", mt: 0.25 }}>
+                      {item.summary}
+                    </Typography>
+                  )}
+                  <AddedBlock added={item.added} />
+                </>
+              )}
+
+              {item.meta && (
+                <Typography sx={{ fontSize: 12.5, color: colors.labelText, mt: 0.25 }}>{item.meta}</Typography>
+              )}
+
+              {/* body preview — clamped when collapsed, full when expanded */}
+              {bodyText && (
+                <Typography
+                  sx={{
+                    fontSize: 13,
+                    color: colors.secondaryText,
+                    mt: 0.75,
+                    whiteSpace: "pre-wrap",
+                    ...(expanded
+                      ? {}
+                      : {
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                        }),
+                  }}
+                >
+                  {bodyText}
+                </Typography>
+              )}
+
+              {/* expanded-only: author + navigate-to-source */}
+              <Collapse in={expanded} timeout="auto" unmountOnExit>
+                <Box sx={{ mt: 1.25 }}>
+                  <Stack direction="row" spacing={0.75} alignItems="center">
+                    <UserAvatar name={item.who} colorSeed={item.who} sx={{ width: 18, height: 18, fontSize: 8 }} />
+                    <Typography sx={{ fontSize: 11.5, color: colors.labelText }}>
+                      {item.who} · {item.when}
+                    </Typography>
+                  </Stack>
+                  {item.source && meta.cta && (
+                    <ButtonBase
+                      onClick={(e) => { e.stopPropagation(); onNavigate(item.source); }}
+                      sx={{
+                        mt: 1,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 0.5,
+                        fontSize: 12,
+                        fontWeight: 500,
+                        color: colors.primary,
+                      }}
+                    >
+                      {meta.cta}
+                      <EastIcon sx={{ fontSize: 13 }} />
+                    </ButtonBase>
+                  )}
+                </Box>
+              </Collapse>
+            </Box>
+          </Stack>
+        );
+      };
+
+      const FeedPanel = ({ onNavigate }) => (
+        <PanelWrap>
+          <Box sx={{ maxWidth: 720 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+              <SectionLabel>Feed</SectionLabel>
+              <Typography sx={mutedTextSx}>{ACTIVITY.length} updates</Typography>
+            </Stack>
+            {ACTIVITY.map((item, i) => (
+              <FeedItem
+                key={item.id}
+                item={item}
+                isLast={i === ACTIVITY.length - 1}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </Box>
+        </PanelWrap>
+      );
+
+      // An inline, expandable + editable note card. Guides can expand a note
+      // and edit it in place — e.g. update a research note while the call
+      // panel is open on the right and they're taking call notes.
+      const NoteCard = ({ note, call, expanded, onToggle, onSave, onOpenCall, autoFocus }) => {
+        // Notion-style: expanding a note drops straight into an editable
+        // document. Title + body live on one continuous surface and edits
+        // save on change — no separate edit mode or Save/Cancel buttons.
+        const [title, setTitle] = useState(note.title);
+        const [body, setBody] = useState(note.body);
+        const bodyRef = useRef(null);
+
+        // Sync local draft when the underlying note changes externally
+        // (e.g. navigated to, or updated elsewhere) while not focused here.
+        useEffect(() => { setTitle(note.title); }, [note.title]);
+        useEffect(() => { setBody(note.body); }, [note.body]);
+
+        useEffect(() => {
+          if (expanded && autoFocus && bodyRef.current) {
+            const el = bodyRef.current.querySelector("textarea");
+            if (el) el.focus();
+          }
+        }, [expanded, autoFocus]);
+
+        const commitTitle = (v) => { setTitle(v); onSave(note.id, { title: v }); };
+        const commitBody = (v) => { setBody(v); onSave(note.id, { body: v }); };
+
+        return (
+          <Box
+            sx={{
+              border: `1px solid ${expanded ? colors.cardHoverBorder : colors.lightBorder}`,
+              borderRadius: "3px",
+              overflow: "hidden",
+              backgroundColor: "#fff",
+            }}
+          >
+            {/* header row (click to expand). No caret — click anywhere.
+                Call notes have no title, so they show the call date instead. */}
+            <Box
+              onClick={() => onToggle(note.id)}
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 1,
+                p: 1.5,
+                cursor: "pointer",
+                "&:hover": { backgroundColor: expanded ? "transparent" : colors.cardHoverBg },
+              }}
+            >
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.25, flexWrap: "wrap" }}>
+                  {call ? (
+                    <>
+                      <CallDirection direction={call.direction} />
+                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText }}>
+                        Call · {call.when}
+                      </Typography>
+                      <PartyPill party={call.party} />
+                    </>
+                  ) : (
+                    <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText }}>
+                      {note.title || "Untitled note"}
+                    </Typography>
+                  )}
+                </Stack>
+                {/* Author is hidden until expanded (usually the dedicated guide). */}
+                {!expanded && (
+                  <Typography
+                    sx={{
+                      fontSize: 13,
+                      color: colors.secondaryText,
+                      mt: 0.25,
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
+                    {note.body}
+                  </Typography>
+                )}
+                {!expanded && !call && (
+                  <Typography sx={{ fontSize: 11.5, color: colors.timestampText, mt: 0.5 }}>
+                    Updated {note.updatedWhen}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+
+            {/* expanded: editable Notion-style document */}
+            <Collapse in={expanded} timeout="auto" unmountOnExit>
+              <Box sx={{ px: 1.5, pb: 1.5, pt: 0 }}>
+                <Divider sx={{ borderColor: colors.lightBorder, mb: 0.5 }} />
+                {/* Author shown on expand (usually the dedicated guide).
+                    Call notes also show who the call was with. */}
+                <Stack direction="row" spacing={0.75} alignItems="center" sx={{ my: 1, flexWrap: "wrap" }}>
+                  <UserAvatar name={note.author} colorSeed={note.author} sx={{ width: 18, height: 18, fontSize: 8 }} />
+                  <Typography sx={{ fontSize: 11.5, color: colors.labelText }}>
+                    {call
+                      ? `Logged by ${note.author} · ${call.when}`
+                      : `${note.author} · updated ${note.updatedWhen}`}
+                  </Typography>
+                  {call && (
+                    <>
+                      <Typography sx={{ fontSize: 11.5, color: colors.mutedText }}>·</Typography>
+                      <CallDirection direction={call.direction} />
+                      <PartyPill party={call.party} />
+                    </>
+                  )}
+                </Stack>
+                {/* Single continuous document surface: title + body, borderless.
+                    Call notes have no title (date-only). */}
+                <Box>
+                  {!call && (
+                    <TextField
+                      variant="standard"
+                      placeholder="Untitled note"
+                      value={title}
+                      onChange={(e) => commitTitle(e.target.value)}
+                      fullWidth
+                      InputProps={{ disableUnderline: true }}
+                      sx={{
+                        "& .MuiInputBase-input": {
+                          fontSize: 20,
+                          fontWeight: 700,
+                          color: colors.primaryText,
+                          padding: "2px 0 2px",
+                          lineHeight: 1.3,
+                        },
+                      }}
+                    />
+                  )}
+                  <TextField
+                    ref={bodyRef}
+                    variant="standard"
+                    placeholder="Start writing…"
+                    value={body}
+                    onChange={(e) => commitBody(e.target.value)}
+                    fullWidth
+                    multiline
+                    minRows={4}
+                    InputProps={{ disableUnderline: true }}
+                    sx={{
+                      "& .MuiInputBase-input": {
+                        fontSize: 14,
+                        color: colors.primaryText,
+                        lineHeight: 1.6,
+                        padding: 0,
+                      },
+                      "& .MuiInputBase-input::placeholder": { color: colors.mutedText, opacity: 1 },
+                    }}
+                  />
+                </Box>
+
+                {/* subtle footer: call link + created/edit metadata */}
+                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 1.5 }}>
+                  {call && (
+                    <ButtonBase
+                      onClick={() => onOpenCall(call)}
+                      sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, fontSize: 12, fontWeight: 500, color: colors.primary }}
+                    >
+                      View call record <EastIcon sx={{ fontSize: 13 }} />
+                    </ButtonBase>
+                  )}
+                  <Typography sx={{ fontSize: 11.5, color: colors.timestampText }}>
+                    Created {note.createdWhen}
+                    {note.versions && note.versions.length > 0
+                      ? ` · ${note.versions.length} edit${note.versions.length === 1 ? "" : "s"}`
+                      : ""}
+                  </Typography>
+                </Stack>
+              </Box>
+            </Collapse>
+          </Box>
+        );
+      };
+
+      const sortLabel = (n) => n.title || "Call note";
+      const SORTS = {
+        updated: { label: "Recently updated", fn: (a, b) => b.updatedTs - a.updatedTs },
+        oldest: { label: "Oldest first", fn: (a, b) => a.updatedTs - b.updatedTs },
+        title: { label: "Title (A–Z)", fn: (a, b) => sortLabel(a).localeCompare(sortLabel(b)) },
+      };
+
+      const NotesPanel = ({
+        notes,
+        callsById,
+        expandedId,
+        onToggleExpand,
+        onSaveNote,
+        onNewNote,
+        onOpenCall,
+        autoEditId,
+      }) => {
+        const [q, setQ] = useState("");
+        const [sortKey, setSortKey] = useState("updated"); // default: recently updated
+        const [filter, setFilter] = useState("all"); // all | call | standalone
+        const [sortAnchor, setSortAnchor] = useState(null);
+
+        const visible = useMemo(() => {
+          let arr = notes.filter((n) => (n.title + n.body).toLowerCase().includes(q.toLowerCase()));
+          if (filter === "call") arr = arr.filter((n) => n.callId);
+          if (filter === "standalone") arr = arr.filter((n) => !n.callId);
+          return [...arr].sort(SORTS[sortKey].fn);
+        }, [notes, q, sortKey, filter]);
+
+        const FilterChip = ({ value, label }) => (
+          <Chip
+            size="small"
+            label={label}
+            onClick={() => setFilter(value)}
+            variant={filter === value ? "filled" : "outlined"}
+            sx={{
+              height: 26,
+              fontSize: 12,
+              borderRadius: "4px",
+              cursor: "pointer",
+              ...(filter === value
+                ? { backgroundColor: colors.selectedBg, color: colors.primary, border: `1px solid ${colors.primary}` }
+                : { color: colors.labelText, borderColor: colors.border }),
+            }}
+          />
+        );
+
+        return (
+          <PanelWrap>
+            <Box sx={{ maxWidth: 720 }}>
+              {/* toolbar */}
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+                <TextField
+                  size="small"
+                  placeholder="Search notes"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  sx={{ flex: 1 }}
+                  InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon sx={{ color: colors.mutedText, fontSize: 18 }} /></InputAdornment>) }}
+                />
+                <Button
+                  size="small"
+                  variant="outlined"
+                  endIcon={<UnfoldMoreIcon />}
+                  onClick={(e) => setSortAnchor(e.currentTarget)}
+                  sx={{ fontSize: 12, whiteSpace: "nowrap", color: colors.secondaryText, borderColor: colors.border }}
+                >
+                  {SORTS[sortKey].label}
+                </Button>
+                <Menu anchorEl={sortAnchor} open={!!sortAnchor} onClose={() => setSortAnchor(null)}>
+                  {Object.entries(SORTS).map(([key, s]) => (
+                    <MenuItem
+                      key={key}
+                      selected={key === sortKey}
+                      onClick={() => { setSortKey(key); setSortAnchor(null); }}
+                      sx={{ fontSize: 13 }}
+                    >
+                      {s.label}
+                    </MenuItem>
+                  ))}
+                </Menu>
+                <Button size="small" variant="contained" startIcon={<AddIcon />} onClick={onNewNote} sx={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                  New note
+                </Button>
+              </Stack>
+
+              {/* filter row */}
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                <FilterChip value="all" label={`All (${notes.length})`} />
+                <FilterChip value="call" label={`On a call (${notes.filter((n) => n.callId).length})`} />
+                <FilterChip value="standalone" label={`Standalone (${notes.filter((n) => !n.callId).length})`} />
+              </Stack>
+
+              {/* list */}
+              <Stack spacing={1.25}>
+                {visible.map((n) => (
+                  <NoteCard
+                    key={n.id}
+                    note={n}
+                    call={n.callId ? callsById[n.callId] : null}
+                    expanded={expandedId === n.id}
+                    autoFocus={autoEditId === n.id}
+                    onToggle={onToggleExpand}
+                    onSave={onSaveNote}
+                    onOpenCall={onOpenCall}
+                  />
+                ))}
+                {visible.length === 0 && <PreviewCardEmpty text="No notes match your search." />}
+              </Stack>
+            </Box>
+          </PanelWrap>
+        );
+      };
+
+      // How each call party kind is represented.
+      const CALL_PARTY = {
+        client: { label: "Client", Icon: PersonIcon, tint: colors.primary, bg: "#F3FAFF" },
+        contact: { label: "Contact", Icon: GroupOutlinedIcon, tint: "#00897b", bg: "#e6f4f2" },
+        third_party: { label: "Third party", Icon: StorefrontOutlinedIcon, tint: "#ef6c00", bg: "#fff3e0" },
+      };
+
+      // Direction badge: outgoing (call made) vs incoming (call received).
+      const CallDirection = ({ direction }) => {
+        const outgoing = direction === "outgoing";
+        const Icon = outgoing ? CallMadeIcon : CallReceivedIcon;
+        const tint = outgoing ? colors.labelText : colors.green;
+        return (
+          <Stack direction="row" spacing={0.4} alignItems="center" sx={{ flexShrink: 0 }}>
+            <Icon sx={{ fontSize: 14, color: tint }} />
+            <Typography sx={{ fontSize: 12, fontWeight: 500, color: tint }}>
+              {outgoing ? "Outgoing" : "Incoming"}
+            </Typography>
+          </Stack>
+        );
+      };
+
+      // Party pill: who the call was with + their kind.
+      const PartyPill = ({ party }) => {
+        const meta = CALL_PARTY[party.kind] || CALL_PARTY.client;
+        const { Icon } = meta;
+        return (
+          <Chip
+            size="small"
+            icon={<Icon sx={{ fontSize: "13px !important", color: meta.tint + " !important" }} />}
+            label={party.name}
+            sx={{
+              height: 20,
+              fontSize: 11,
+              fontWeight: 500,
+              color: meta.tint,
+              backgroundColor: meta.bg,
+              "& .MuiChip-icon": { ml: "5px" },
+              "& .MuiChip-label": { px: "6px" },
+            }}
+          />
+        );
+      };
+
+      // Per-medium presentation for the communication thread.
+      const COMM_MEDIUM = {
+        call: { label: "Call", Icon: PhoneInTalkIcon, tint: colors.green, bg: "#eef7ef" },
+        text: { label: "Text", Icon: SmsOutlinedIcon, tint: colors.primary, bg: "#F3FAFF" },
+        email: { label: "Email", Icon: EmailOutlinedIcon, tint: "#9164ff", bg: "#f3eeff" },
+      };
+
+      // One row in the unified communication thread.
+      const CommItem = ({ item, note, onOpen }) => {
+        const medium = COMM_MEDIUM[item.medium];
+        const { Icon } = medium;
+        const preview =
+          item.medium === "call"
+            ? note?.body || null
+            : item.body;
+        return (
+          <Stack direction="row" spacing={1.5} alignItems="flex-start">
+            {/* medium marker */}
+            <Box
+              sx={{
+                width: 34,
+                height: 34,
+                borderRadius: "50%",
+                backgroundColor: medium.bg,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                mt: 0.25,
+              }}
+            >
+              <Icon sx={{ fontSize: 18, color: medium.tint }} />
+            </Box>
+
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <PreviewCard title={item.when} onClick={() => onOpen(item)}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ width: "100%", flexWrap: "wrap", gap: 0.75 }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: medium.tint }}>{medium.label}</Typography>
+                  <CallDirection direction={item.direction} />
+                  <PartyPill party={item.party} />
+                  <Box sx={{ flex: 1 }} />
+                  {item.medium === "call" && (
+                    <Typography sx={{ fontSize: 12, color: colors.labelText }}>
+                      {item.outcome} · {item.duration}
+                    </Typography>
+                  )}
+                </Stack>
+                {item.subject && (
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, color: colors.primaryText, textAlign: "left", width: "100%" }}>
+                    {item.subject}
+                  </Typography>
+                )}
+                {preview ? (
+                  <Typography
+                    sx={{
+                      fontSize: 13,
+                      color: colors.secondaryText,
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                      textAlign: "left",
+                      width: "100%",
+                    }}
+                  >
+                    {preview}
+                  </Typography>
+                ) : (
+                  item.medium === "call" && (
+                    <Typography sx={{ fontSize: 12, color: colors.mutedText, fontStyle: "italic", textAlign: "left", width: "100%" }}>
+                      No note attached
+                    </Typography>
+                  )
+                )}
+              </PreviewCard>
+            </Box>
+          </Stack>
+        );
+      };
+
+      const COMM_FILTERS = {
+        all: { label: "All", test: () => true },
+        call: { label: "Calls", test: (i) => i.medium === "call" },
+        text: { label: "Texts", test: (i) => i.medium === "text" },
+        email: { label: "Emails", test: (i) => i.medium === "email" },
+      };
+
+      const CommunicationPanel = ({ calls, messages, notes, onOpen }) => {
+        const [filter, setFilter] = useState("all");
+        // Merge every medium and sort as one chronological thread (newest first).
+        const thread = useMemo(
+          () => [...calls, ...messages].sort((a, b) => b.ts - a.ts),
+          [calls, messages],
+        );
+        const visible = thread.filter(COMM_FILTERS[filter].test);
+
+        const FilterChip = ({ value }) => {
+          const count = value === "all" ? thread.length : thread.filter(COMM_FILTERS[value].test).length;
+          return (
+            <Chip
+              size="small"
+              label={`${COMM_FILTERS[value].label} (${count})`}
+              onClick={() => setFilter(value)}
+              variant={filter === value ? "filled" : "outlined"}
+              sx={{
+                height: 26,
+                fontSize: 12,
+                borderRadius: "4px",
+                cursor: "pointer",
+                ...(filter === value
+                  ? { backgroundColor: colors.selectedBg, color: colors.primary, border: `1px solid ${colors.primary}` }
+                  : { color: colors.labelText, borderColor: colors.border }),
+              }}
+            />
+          );
+        };
+
+        return (
+          <PanelWrap>
+            <Box sx={{ maxWidth: 720 }}>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                {Object.keys(COMM_FILTERS).map((k) => (
+                  <FilterChip key={k} value={k} />
+                ))}
+              </Stack>
+              <Stack spacing={1.25}>
+                {visible.map((item) => (
+                  <CommItem
+                    key={item.id}
+                    item={item}
+                    note={item.medium === "call" ? notes.find((n) => n.callId === item.id) : null}
+                    onOpen={onOpen}
+                  />
+                ))}
+              </Stack>
+            </Box>
+          </PanelWrap>
+        );
+      };
+
+      const TasksPanel = ({ tasks, onToggle, onOpenTask }) => (
+        <PanelWrap>
+          <Box sx={{ maxWidth: 720 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+              <SectionLabel>Tasks</SectionLabel>
+              <Button size="small" startIcon={<AddIcon />} sx={{ fontSize: 11, color: colors.primary }}>New task</Button>
+            </Stack>
+            <Stack spacing={1}>
+              {tasks.map((t) => (
+                <Box
+                  key={t.id}
+                  sx={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 1.25,
+                    border: `1px solid ${colors.lightBorder}`,
+                    borderRadius: "3px",
+                    p: 1.5,
+                    cursor: "pointer",
+                    "&:hover": { backgroundColor: colors.cardHoverBg, borderColor: colors.cardHoverBorder },
+                  }}
+                  onClick={() => onOpenTask(t)}
+                >
+                  <IconButton
+                    size="small"
+                    sx={{ p: 0, mt: "1px" }}
+                    onClick={(e) => { e.stopPropagation(); onToggle(t.id); }}
+                  >
+                    {t.status === "done" ? (
+                      <CheckCircleOutlineIcon sx={{ color: colors.green, fontSize: 20 }} />
+                    ) : (
+                      <RadioButtonUncheckedIcon sx={{ color: colors.mutedText, fontSize: 20 }} />
+                    )}
+                  </IconButton>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography
+                      sx={{
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: colors.primaryText,
+                        textDecoration: t.status === "done" ? "line-through" : "none",
+                      }}
+                    >
+                      {t.title}
+                    </Typography>
+                    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 0.75 }}>
+                      <StatusChip status={t.status} label={t.statusLabel} />
+                      <Stack direction="row" spacing={0.5} alignItems="center">
+                        <UserAvatar name={t.assignee} colorSeed={t.assignee} sx={{ width: 18, height: 18, fontSize: 8 }} />
+                        <Typography sx={{ fontSize: 12, color: colors.labelText }}>{t.assignee}</Typography>
+                      </Stack>
+                      <Typography sx={{ fontSize: 12, color: colors.timestampText }}>Due {t.due}</Typography>
+                    </Stack>
+                  </Box>
+                </Box>
+              ))}
+            </Stack>
+          </Box>
+        </PanelWrap>
+      );
+
+      const DocumentsPanel = () => (
+        <PanelWrap>
+          <Box sx={{ maxWidth: 720 }}>
+            <Box
+              sx={{
+                border: `1.5px dashed ${colors.border}`,
+                borderRadius: "6px",
+                p: 3,
+                mb: 3,
+                textAlign: "center",
+                color: colors.labelText,
+                backgroundColor: colors.emptyCardBg,
+              }}
+            >
+              <UploadFileIcon sx={{ fontSize: 28, color: colors.mutedText }} />
+              <Typography sx={{ fontSize: 13, mt: 0.5 }}>Drag &amp; drop files here, or click to upload</Typography>
+            </Box>
+            <Stack spacing={1.25}>
+              {DOCUMENTS.map((d) => (
+                <Stack
+                  key={d.id}
+                  direction="row"
+                  spacing={1.5}
+                  alignItems="center"
+                  sx={{
+                    border: `1px solid ${colors.lightBorder}`,
+                    borderRadius: "3px",
+                    p: 1.5,
+                    cursor: "pointer",
+                    "&:hover": { backgroundColor: colors.cardHoverBg, borderColor: colors.cardHoverBorder },
+                  }}
+                >
+                  <DescriptionOutlinedIcon sx={{ color: colors.primary }} />
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: colors.primaryText }}>{d.name}</Typography>
+                    <Typography sx={{ fontSize: 12, color: colors.labelText }}>{d.size} · {d.by} · {d.when}</Typography>
+                  </Box>
+                  <EastIcon sx={{ fontSize: 16, color: colors.labelText }} />
+                </Stack>
+              ))}
+            </Stack>
+          </Box>
+        </PanelWrap>
+      );
+
+      // ===================================================================
+      // RIGHT PANE CONTENTS
+      // ===================================================================
+      const PaneHeader = ({ title, onClose }) => (
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          sx={{ px: 2, py: 1.25, borderBottom: `1px solid ${colors.lightBorder}`, flexShrink: 0 }}
+        >
+          <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText }}>{title}</Typography>
+          <IconButton size="small" onClick={onClose}><CloseIcon fontSize="small" /></IconButton>
+        </Stack>
+      );
+
+      // Compact call-controls strip shown at the top of the Next-call pane
+      // while a call is live.
+      const CallControls = ({ onEnd }) => {
+        const [seconds, setSeconds] = useState(0);
+        const [muted, setMuted] = useState(false);
+        useEffect(() => {
+          const id = setInterval(() => setSeconds((s) => s + 1), 1000);
+          return () => clearInterval(id);
+        }, []);
+        const mmss = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+        return (
+          <Box sx={{ p: 2, borderBottom: `1px solid ${colors.lightBorder}`, flexShrink: 0, backgroundColor: "#f8fdf8" }}>
+            <Stack direction="row" spacing={1.25} alignItems="center">
+              <UserAvatar name={CLIENT.name} colorSeed={CLIENT.name} sx={{ width: 40, height: 40, fontSize: 15 }} />
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText, lineHeight: 1.2 }}>{CLIENT.name}</Typography>
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <Box sx={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: colors.green }} />
+                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: colors.green }}>Connected · {mmss}</Typography>
+                </Stack>
+              </Box>
+              <Tooltip title={muted ? "Unmute" : "Mute"}>
+                <IconButton
+                  size="small"
+                  onClick={() => setMuted((m) => !m)}
+                  sx={{ border: `1px solid ${colors.border}`, backgroundColor: muted ? "#FFCDD2" : "transparent" }}
+                >
+                  {muted ? <MicOffIcon fontSize="small" /> : <MicIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Keypad">
+                <IconButton size="small" sx={{ border: `1px solid ${colors.border}` }}><DialpadIcon fontSize="small" /></IconButton>
+              </Tooltip>
+              <Tooltip title="End call">
+                <IconButton
+                  size="small"
+                  onClick={onEnd}
+                  sx={{ backgroundColor: colors.red, color: "#fff", "&:hover": { backgroundColor: "#b71c1c" } }}
+                >
+                  <CallEndIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Box>
+        );
+      };
+
+      // Persistent "Next call" note pane. Between calls it's a working plan
+      // the guide builds up from research across many notes. During a call it
+      // becomes the live outline + capture surface. On end call it's archived
+      // as a historical call note and reset to a fresh blank plan.
+      const NextCallPane = ({ note, onChange, onClose, onStartCall, onEndCall, callActive }) => {
+        const bodyRef = useRef(null);
+        useEffect(() => {
+          if (callActive && bodyRef.current) {
+            const el = bodyRef.current.querySelector("textarea");
+            if (el) el.focus();
+          }
+        }, [callActive]);
+
+        return (
+          <>
+            {/* header */}
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              sx={{ px: 2, py: 1.25, borderBottom: `1px solid ${colors.lightBorder}`, flexShrink: 0 }}
+            >
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <UpcomingIcon sx={{ fontSize: 18, color: callActive ? colors.green : colors.primary }} />
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText }}>
+                  {callActive ? "On call · working note" : "Next call"}
+                </Typography>
+              </Stack>
+              <Tooltip title="Collapse panel">
+                <IconButton size="small" onClick={onClose}><ChevronRightIcon fontSize="small" /></IconButton>
+              </Tooltip>
+            </Stack>
+
+            {callActive && <CallControls onEnd={onEndCall} />}
+
+            {/* the working document (title + body, Notion-style) */}
+            <Box sx={{ px: 2, pt: 1.5, pb: 2, display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+              {!callActive && (
+                <Typography sx={{ fontSize: 11.5, color: colors.labelText, mb: 1.5, lineHeight: 1.5 }}>
+                  Draft the outline for your next conversation here. It stays with you as you
+                  browse the profile, and becomes the live note when you start the call.
+                </Typography>
+              )}
+              <Box ref={bodyRef} sx={{ flex: 1, minHeight: 0, display: "flex" }}>
+                <TextField
+                  variant="standard"
+                  placeholder={"• Topics to cover\n• Questions to ask\n• Updates to share…"}
+                  value={note.body}
+                  onChange={(e) => onChange({ body: e.target.value })}
+                  fullWidth
+                  multiline
+                  InputProps={{ disableUnderline: true }}
+                  sx={{
+                    flex: 1,
+                    "& .MuiInputBase-root": { alignItems: "flex-start", height: "100%" },
+                    "& .MuiInputBase-input": { fontSize: 14, color: colors.primaryText, lineHeight: 1.6, height: "100% !important", overflow: "auto !important" },
+                    "& .MuiInputBase-input::placeholder": { color: colors.mutedText, opacity: 1 },
+                  }}
+                />
+              </Box>
+
+              {callActive ? (
+                <Button variant="contained" color="error" startIcon={<CallEndIcon />} sx={{ mt: 1.5, fontSize: 12 }} onClick={onEndCall}>
+                  End call &amp; archive note
+                </Button>
+              ) : (
+                <Button variant="contained" color="success" startIcon={<PhoneIcon />} sx={{ mt: 1.5, fontSize: 12 }} onClick={onStartCall}>
+                  Start call with this plan
+                </Button>
+              )}
+            </Box>
+          </>
+        );
+      };
+
+      const CallDetailPane = ({ call, note, onClose, onOpenNote }) => {
+        const partyMeta = CALL_PARTY[call.party.kind] || CALL_PARTY.client;
+        return (
+          <>
+            <PaneHeader title="Call detail" onClose={onClose} />
+            <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1.5, overflowY: "auto" }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <CallDirection direction={call.direction} />
+                <Typography sx={{ fontSize: 12, color: colors.mutedText }}>·</Typography>
+                <Typography sx={{ fontSize: 12, color: colors.labelText }}>{partyMeta.label}</Typography>
+              </Stack>
+              <Stack direction="row" spacing={1.25} alignItems="center">
+                <Box sx={{ width: 36, height: 36, borderRadius: "50%", backgroundColor: partyMeta.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <partyMeta.Icon sx={{ fontSize: 20, color: partyMeta.tint }} />
+                </Box>
+                <Typography sx={{ fontSize: 17, fontWeight: 700, color: colors.primaryText }}>{call.party.name}</Typography>
+              </Stack>
+              <InfoRow label="When" value={call.when} />
+              <InfoRow label="Duration" value={call.duration} />
+              <InfoRow label="Outcome" value={call.outcome} />
+              <Divider sx={{ borderColor: colors.lightBorder }} />
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <SectionLabel>Attached note</SectionLabel>
+                {note && (
+                  <ButtonBase
+                    onClick={() => onOpenNote(note)}
+                    sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, fontSize: 12, fontWeight: 500, color: colors.primary }}
+                  >
+                    Open in Notes <EastIcon sx={{ fontSize: 13 }} />
+                  </ButtonBase>
+                )}
+              </Stack>
+              {note ? (
+                <Box sx={{ border: `1px solid ${colors.lightBorder}`, borderRadius: "3px", p: 1.5 }}>
+                  <Typography sx={{ fontSize: 11.5, color: colors.labelText, mb: 1 }}>
+                    {note.author} · {note.updatedWhen}
+                  </Typography>
+                  <Typography sx={{ fontSize: 14, color: colors.primaryText, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{note.body}</Typography>
+                </Box>
+              ) : (
+                <PreviewCardEmpty text="No note attached to this call." />
+              )}
+            </Box>
+          </>
+        );
+      };
+
+      const MessageDetailPane = ({ message, onClose }) => {
+        const medium = COMM_MEDIUM[message.medium];
+        const partyMeta = CALL_PARTY[message.party.kind] || CALL_PARTY.client;
+        return (
+          <>
+            <PaneHeader title={medium.label + " detail"} onClose={onClose} />
+            <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1.5, overflowY: "auto" }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <medium.Icon sx={{ fontSize: 16, color: medium.tint }} />
+                <Typography sx={{ fontSize: 12, fontWeight: 600, color: medium.tint }}>{medium.label}</Typography>
+                <Typography sx={{ fontSize: 12, color: colors.mutedText }}>·</Typography>
+                <CallDirection direction={message.direction} />
+              </Stack>
+              <Stack direction="row" spacing={1.25} alignItems="center">
+                <Box sx={{ width: 36, height: 36, borderRadius: "50%", backgroundColor: partyMeta.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <partyMeta.Icon sx={{ fontSize: 20, color: partyMeta.tint }} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontSize: 16, fontWeight: 700, color: colors.primaryText, lineHeight: 1.2 }}>{message.party.name}</Typography>
+                  <Typography sx={{ fontSize: 11.5, color: colors.labelText }}>
+                    {message.direction === "outgoing" ? "To" : "From"} · {partyMeta.label}
+                  </Typography>
+                </Box>
+              </Stack>
+              <InfoRow label="When" value={message.when} />
+              {message.subject && <InfoRow label="Subject" value={message.subject} />}
+              <Divider sx={{ borderColor: colors.lightBorder }} />
+              <SectionLabel>{message.medium === "email" ? "Message" : "Transcript"}</SectionLabel>
+              <Box sx={{ border: `1px solid ${colors.lightBorder}`, borderRadius: "3px", p: 1.5 }}>
+                <Typography sx={{ fontSize: 14, color: colors.primaryText, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                  {message.body}
+                </Typography>
+              </Box>
+            </Box>
+          </>
+        );
+      };
+
+      const TaskDetailPane = ({ task, onClose, onToggle }) => (
+        <>
+          <PaneHeader title="Task" onClose={onClose} />
+          <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1.75 }}>
+            <Typography sx={{ fontSize: 20, fontWeight: 700, color: colors.primaryText }}>{task.title}</Typography>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <StatusChip status={task.status} label={task.statusLabel} />
+              <Button size="small" onClick={() => onToggle(task.id)} sx={{ fontSize: 11 }}>
+                {task.status === "done" ? "Reopen" : "Mark done"}
+              </Button>
+            </Stack>
+            <Divider sx={{ borderColor: colors.lightBorder }} />
+            <Stack direction="row" spacing={4}>
+              <Box>
+                <SectionLabel>Assignee</SectionLabel>
+                <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.5 }}>
+                  <UserAvatar name={task.assignee} colorSeed={task.assignee} sx={{ width: 20, height: 20, fontSize: 8 }} />
+                  <Typography sx={bodyValueSx}>{task.assignee}</Typography>
+                </Stack>
+              </Box>
+              <Box>
+                <SectionLabel>Due</SectionLabel>
+                <Typography sx={{ ...bodyValueSx, mt: 0.5 }}>{task.due}</Typography>
+              </Box>
+            </Stack>
+            <Divider sx={{ borderColor: colors.lightBorder }} />
+            <SectionLabel>Detail</SectionLabel>
+            <Typography sx={{ fontSize: 14, color: colors.primaryText, lineHeight: 1.6 }}>{task.detail}</Typography>
+          </Box>
+        </>
+      );
+
+      // ===================================================================
+      // APP SHELL
+      // ===================================================================
+      const TABS = [
+        { key: "overview", label: "Overview", icon: <DashboardOutlinedIcon fontSize="small" /> },
+        { key: "activity", label: "Feed", icon: <HistoryIcon fontSize="small" /> },
+        { key: "notes", label: "Notes", icon: <NotesIcon fontSize="small" /> },
+        { key: "comms", label: "Communication", icon: <ForumOutlinedIcon fontSize="small" /> },
+        { key: "tasks", label: "Tasks", icon: <AssignmentOutlinedIcon fontSize="small" /> },
+        { key: "documents", label: "Documents", icon: <FolderOpenIcon fontSize="small" /> },
+      ];
+
+      function App() {
+        const [tab, setTab] = useState("overview");
+        const [tasks, setTasks] = useState(TASKS);
+        const [notes, setNotes] = useState(NOTES);
+        const [calls, setCalls] = useState(CALLS);
+        const [messages, setMessages] = useState(MESSAGES);
+        // right pane: { type: 'call' | 'note' | 'callDetail' | 'taskDetail', data }
+        const [pane, setPane] = useState(null);
+        const [toast, setToast] = useState("");
+        // Inline expand/edit state for the notes list.
+        const [expandedNoteId, setExpandedNoteId] = useState(null);
+        const [autoEditNoteId, setAutoEditNoteId] = useState(null);
+
+        // Persistent "Next call" working note. Survives tab navigation and
+        // pane open/close. During a call it doubles as the live capture note.
+        const NEXT_CALL_SEED = {
+          title: "Prep · benefits & mobility follow-ups",
+          body:
+            "TOPICS TO COVER\n• Knee MRI claim — retro PA approved, corrected claim reprocessing (from “Knee MRI claim” note)\n• Transportation — share the 2 NEMT options I found (see “Transportation options” research)\n• Mobility aids — walker vs. rollator; confirm DME coverage\n\nQUESTIONS TO ASK\n• Has the corrected EOB arrived in the mail yet?\n• Is she comfortable scheduling the Annual Wellness Visit now?\n• Any falls or mobility concerns since last call?\n\nUPDATES TO SHARE\n• Dental: $2,000/yr allowance confirmed — can book cleaning anytime",
+        };
+        const [nextCallNote, setNextCallNote] = useState(NEXT_CALL_SEED);
+        const [nextCallOpen, setNextCallOpen] = useState(true);
+        const [activeCallId, setActiveCallId] = useState(null); // set while a call is live
+
+        const callsById = useMemo(
+          () => Object.fromEntries(calls.map((c) => [c.id, c])),
+          [calls],
+        );
+
+        const findNote = (id) => notes.find((n) => n.id === id);
+        const findCall = (id) => calls.find((c) => c.id === id);
+        const noteForCall = (callId) => notes.find((n) => n.callId === callId);
+
+        const toggleTask = (id) =>
+          setTasks((ts) =>
+            ts.map((t) =>
+              t.id === id
+                ? t.status === "done"
+                  ? { ...t, status: "in_progress", statusLabel: "In progress" }
+                  : { ...t, status: "done", statusLabel: "Done" }
+                : t,
+            ),
+          );
+
+        // --- Notes CRUD ---------------------------------------------------
+        // Autosave silently on each change (Notion-style) — no toast spam.
+        const saveNote = (id, patch) => {
+          setNotes((ns) =>
+            ns.map((n) =>
+              n.id === id
+                ? { ...n, ...patch, updatedWhen: "just now", updatedTs: Date.now() }
+                : n,
+            ),
+          );
+        };
+        const newNote = () => {
+          const id = "note-" + Date.now();
+          const note = {
+            id,
+            title: "Untitled note",
+            author: "Marcus Bell",
+            createdWhen: "just now",
+            updatedWhen: "just now",
+            updatedTs: Date.now(),
+            callId: null,
+            body: "",
+            versions: [],
+          };
+          setNotes((ns) => [note, ...ns]);
+          setTab("notes");
+          setExpandedNoteId(id);
+          setAutoEditNoteId(id);
+        };
+        const toggleExpand = (id) => {
+          setExpandedNoteId((cur) => (cur === id ? null : id));
+          setAutoEditNoteId(null);
+        };
+        // Open a note inline in the center list (from activity / call detail).
+        const openNoteInline = (note) => {
+          setTab("notes");
+          setExpandedNoteId(note.id);
+          setAutoEditNoteId(null);
+        };
+
+        // --- Next call working note --------------------------------------
+        const changeNextCall = (patch) =>
+          setNextCallNote((n) => ({ ...n, ...patch }));
+        const openNextCall = () => setNextCallOpen(true);
+        const closeNextCall = () => setNextCallOpen(false);
+
+        // --- Calls --------------------------------------------------------
+        // Starting a call turns the Next-call plan into the live working note.
+        const startCall = () => {
+          setActiveCallId("call-" + Date.now());
+          setPane(null); // give the working note the whole right pane
+          setNextCallOpen(true);
+        };
+        // Ending a call archives the working note as a historical, call-attached
+        // note, then resets the Next-call note to a fresh blank plan.
+        const endCall = () => {
+          if (activeCallId) {
+            const now = Date.now();
+            const callRecord = {
+              id: activeCallId,
+              medium: "call",
+              direction: "outgoing",
+              party: { name: CLIENT.name, kind: "client" },
+              when: "just now",
+              ts: now,
+              duration: "—",
+              outcome: "Connected",
+            };
+            setCalls((cs) => [callRecord, ...cs]);
+            const callNote = {
+              id: "note-" + now,
+              title: "", // call notes are date-only, no title
+              author: "Marcus Bell",
+              createdWhen: "just now",
+              updatedWhen: "just now",
+              updatedTs: now,
+              callId: activeCallId,
+              body: nextCallNote.body || "",
+              versions: [],
+            };
+            setNotes((ns) => [callNote, ...ns]);
+          }
+          setActiveCallId(null);
+          // Clear the working note into a fresh blank plan for the next call.
+          setNextCallNote({ title: "", body: "" });
+          setNextCallOpen(true);
+          setToast("Call archived to Notes · Next-call plan cleared");
+        };
+        const closePane = () => setPane(null);
+        const callActive = !!activeCallId;
+
+        // Jump from an activity item to its source. Notes open inline in the
+        // center list; calls/tasks open in the right pane.
+        const navigateToSource = (source) => {
+          if (!source) return;
+          if (source.kind === "note") {
+            const note = findNote(source.id);
+            if (note) openNoteInline(note);
+          } else if (source.kind === "call") {
+            setTab("comms");
+            setPane({ type: "callDetail", data: findCall(source.id) });
+          } else if (source.kind === "task") {
+            setTab("tasks");
+            const task = tasks.find((t) => t.id === source.id);
+            if (task) setPane({ type: "taskDetail", data: task });
+          } else if (source.kind === "document") {
+            setTab("documents");
+            setToast("Opened " + (findDoc(source.id)?.name || "document"));
+          }
+        };
+
+        const openCallDetail = (call) => {
+          setTab("comms");
+          setPane({ type: "callDetail", data: call });
+        };
+
+        // Open any communication item: calls -> call detail, texts/emails -> message detail.
+        const openComm = (item) => {
+          if (item.medium === "call") setPane({ type: "callDetail", data: item });
+          else setPane({ type: "messageDetail", data: item });
+        };
+
+        // Right-side resolution:
+        //  - during a call, the working note owns the right pane
+        //  - otherwise a transient detail pane (call/task) takes precedence
+        //  - otherwise the persistent Next-call pane shows if open
+        const showDetailPane = !callActive && !!pane;
+        const showNextCall = callActive || (!pane && nextCallOpen);
+        const rightWidth = showNextCall ? 440 : showDetailPane ? 440 : 0;
+
+        return (
+          <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+            {/* Top bar */}
+            <Box
+              sx={{
+                height: 44,
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                px: 2,
+                borderBottom: `1px solid ${colors.lightBorder}`,
+                gap: 1.5,
+              }}
+            >
+              <Typography sx={{ fontSize: 15, fontWeight: 700, color: colors.primary, letterSpacing: 0.5 }}>ez</Typography>
+              <Divider orientation="vertical" flexItem sx={{ borderColor: colors.lightBorder }} />
+              <Typography sx={{ fontSize: 13, color: colors.labelText }}>Client Profile</Typography>
+              <Box sx={{ flex: 1 }} />
+              <Chip size="small" label="Prototype" sx={{ fontSize: 10, height: 20, backgroundColor: "#F3FAFF", color: colors.primary }} />
+            </Box>
+
+            {/* Body: left sidebar | center tabs | right pane */}
+            <Box sx={{ flex: 1, display: "flex", minHeight: 0, position: "relative" }}>
+              <LeftSidebar
+                onStartCall={startCall}
+                onStartText={() => setToast("Texting is stubbed in this prototype")}
+                callActive={callActive}
+                nextCallOpen={showNextCall}
+                onToggleNextCall={() => {
+                  if (pane) { setPane(null); setNextCallOpen(true); }
+                  else setNextCallOpen((o) => !o);
+                }}
+              />
+
+              {/* Center */}
+              <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+                <Tabs
+                  value={tab}
+                  onChange={(_, v) => setTab(v)}
+                  variant="scrollable"
+                  scrollButtons={false}
+                  sx={{
+                    borderBottom: `1px solid ${colors.lightBorder}`,
+                    px: 1,
+                    minHeight: 44,
+                    "& .MuiTab-root": { minHeight: 44, minWidth: "auto", px: 2, fontSize: 13 },
+                  }}
+                >
+                  {TABS.map((t) => (
+                    <Tab
+                      key={t.key}
+                      value={t.key}
+                      iconPosition="start"
+                      icon={t.icon}
+                      label={
+                        t.key === "tasks"
+                          ? <Badge color="primary" badgeContent={tasks.filter((x) => x.status !== "done").length} sx={{ "& .MuiBadge-badge": { position: "static", transform: "none", ml: 0.75, fontSize: 10, height: 16, minWidth: 16 } }}>Tasks</Badge>
+                          : t.label
+                      }
+                    />
+                  ))}
+                </Tabs>
+
+                <Box sx={{ flex: 1, minHeight: 0 }}>
+                  {tab === "overview" && (
+                    <OverviewPanel
+                      onAction={(label) => setToast(label + " — stubbed in this prototype")}
+                      onGoTab={(t) => setTab(t)}
+                    />
+                  )}
+                  {tab === "activity" && <FeedPanel onNavigate={navigateToSource} />}
+                  {tab === "notes" && (
+                    <NotesPanel
+                      notes={notes}
+                      callsById={callsById}
+                      expandedId={expandedNoteId}
+                      autoEditId={autoEditNoteId}
+                      onToggleExpand={toggleExpand}
+                      onSaveNote={saveNote}
+                      onNewNote={newNote}
+                      onOpenCall={openCallDetail}
+                    />
+                  )}
+                  {tab === "comms" && (
+                    <CommunicationPanel calls={calls} messages={messages} notes={notes} onOpen={openComm} />
+                  )}
+                  {tab === "tasks" && <TasksPanel tasks={tasks} onToggle={toggleTask} onOpenTask={(t) => setPane({ type: "taskDetail", data: t })} />}
+                  {tab === "documents" && <DocumentsPanel />}
+                </Box>
+              </Box>
+
+              {/* Reopen tab for the collapsed Next-call pane */}
+              {!showNextCall && !showDetailPane && !nextCallOpen && (
+                <Tooltip title="Open Next-call note" placement="left">
+                  <Box
+                    onClick={openNextCall}
+                    sx={{
+                      position: "absolute",
+                      right: 0,
+                      top: 120,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.5,
+                      px: 1,
+                      py: 1.25,
+                      borderTopLeftRadius: 6,
+                      borderBottomLeftRadius: 6,
+                      backgroundColor: colors.primary,
+                      color: "#fff",
+                      cursor: "pointer",
+                      boxShadow: "0px 2px 8px #0000002A",
+                      writingMode: "vertical-rl",
+                      "&:hover": { backgroundColor: "#0d4a94" },
+                    }}
+                  >
+                    <UpcomingIcon sx={{ fontSize: 16, transform: "rotate(90deg)" }} />
+                    <Typography sx={{ fontSize: 12, fontWeight: 600 }}>Next call</Typography>
+                  </Box>
+                </Tooltip>
+              )}
+
+              {/* Right pane */}
+              <RightPane open={showNextCall || showDetailPane} width={rightWidth}>
+                {showNextCall && (
+                  <NextCallPane
+                    note={nextCallNote}
+                    onChange={changeNextCall}
+                    onClose={closeNextCall}
+                    onStartCall={startCall}
+                    onEndCall={endCall}
+                    callActive={callActive}
+                  />
+                )}
+                {showDetailPane && pane?.type === "callDetail" && (
+                  <CallDetailPane
+                    call={pane.data}
+                    note={noteForCall(pane.data.id)}
+                    onClose={closePane}
+                    onOpenNote={openNoteInline}
+                  />
+                )}
+                {showDetailPane && pane?.type === "messageDetail" && (
+                  <MessageDetailPane message={pane.data} onClose={closePane} />
+                )}
+                {showDetailPane && pane?.type === "taskDetail" && (
+                  <TaskDetailPane
+                    task={tasks.find((t) => t.id === pane.data.id) || pane.data}
+                    onClose={closePane}
+                    onToggle={toggleTask}
+                  />
+                )}
+              </RightPane>
+            </Box>
+
+            <Snackbar
+              open={!!toast}
+              autoHideDuration={2600}
+              onClose={() => setToast("")}
+              anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            >
+              <Alert severity="success" variant="filled" onClose={() => setToast("")} sx={{ fontSize: 13 }}>
+                {toast}
+              </Alert>
+            </Snackbar>
+          </Box>
+        );
+      }
+
+      const bootEl = document.getElementById("boot");
+      if (bootEl) bootEl.remove();
+      createRoot(document.getElementById("root")).render(
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <App />
+        </ThemeProvider>,
+      );
+    </script>
+  </body>
+</html>
