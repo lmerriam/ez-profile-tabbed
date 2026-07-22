@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EZ · Client Profile (Tabbed Prototype)</title>
+    <title>EZ · Client Profile (MVP Prototype)</title>
 
     <!-- Roboto (matches the real app's global font) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -180,7 +180,8 @@
       import TaskAltIcon from "@mui/icons-material/TaskAlt";
       import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
       import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
-      import UpcomingIcon from "@mui/icons-material/Upcoming";
+      import PushPinIcon from "@mui/icons-material/PushPin";
+      import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
       import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
       import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
       import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -244,6 +245,7 @@
       const bodyValueSx = { fontSize: 14, fontWeight: 400, color: colors.primaryText };
       const mutedTextSx = { fontSize: 12, fontWeight: 500, color: colors.mutedText };
       const previewCardTitleSx = { fontSize: 12, fontWeight: 500, color: colors.labelText };
+      const tableHeaderLike = { fontSize: 10, fontWeight: 600, letterSpacing: 0.4, textTransform: "uppercase", color: colors.labelText };
 
       // dialerTheme (ezrepo: src/utils/theme.ts:338) — default MUI palette,
       // small typography, capitalized buttons, Roboto.
@@ -643,64 +645,11 @@
         },
       ];
 
-      // Texts and emails — interleaved with calls into one communication thread.
-      const MESSAGES = [
-        {
-          id: "m1",
-          medium: "text",
-          direction: "outgoing",
-          party: { name: "Dorothy Whitfield", kind: "client" },
-          when: "Feb 13, 2026 · 9:15 AM",
-          ts: new Date("2026-02-13T09:15:00").getTime(),
-          body: "Hi Dot! Quick reminder that your rollator prescription is in progress with Dr. Reyes. I'll call once it's ready to order. — Marcus",
-        },
-        {
-          id: "m2",
-          medium: "text",
-          direction: "incoming",
-          party: { name: "Dorothy Whitfield", kind: "client" },
-          when: "Feb 13, 2026 · 9:22 AM",
-          ts: new Date("2026-02-13T09:22:00").getTime(),
-          body: "Thank you Marcus. The EOB letter came in the mail yesterday too.",
-        },
-        {
-          id: "m3",
-          medium: "email",
-          direction: "outgoing",
-          party: { name: "Dorothy Whitfield", kind: "client" },
-          when: "Feb 11, 2026 · 4:05 PM",
-          ts: new Date("2026-02-11T16:05:00").getTime(),
-          subject: "Your transportation options",
-          body:
-            "Hi Dot,\n\nAs promised, here's a summary of the transportation services we discussed:\n\n1) Bay Area Senior Rides — $0 for covered medical trips, call 48h ahead.\n2) East Bay Paratransit — $4/trip, ADA application in progress.\n\nI'll follow up once your paratransit eligibility is confirmed.\n\nBest,\nMarcus Bell\nEZ Care Guide",
-        },
-        {
-          id: "m4",
-          medium: "email",
-          direction: "incoming",
-          party: { name: "Bay Area Senior Rides", kind: "third_party" },
-          when: "Feb 10, 2026 · 5:40 PM",
-          ts: new Date("2026-02-10T17:40:00").getTime(),
-          subject: "RE: Coverage confirmation for D. Whitfield",
-          body:
-            "Hi Marcus,\n\nConfirming per our call: Ms. Whitfield qualifies for $0 NEMT under her Humana plan (24 one-way trips/yr). Wheelchair-accessible vans available with 48h notice.\n\nRegards,\nCarla — Bay Area Senior Rides",
-        },
-        {
-          id: "m5",
-          medium: "text",
-          direction: "incoming",
-          party: { name: "Susan Whitfield", kind: "contact" },
-          when: "Feb 8, 2026 · 6:30 PM",
-          ts: new Date("2026-02-08T18:30:00").getTime(),
-          body: "Hi, this is Susan (Dot's daughter). Mom mentioned she almost fell on the stairs. Can we talk about options? Thanks.",
-        },
-      ];
-
-      // Single flat notes collection. No "chronological"/"research" split —
-      // the only differentiator is whether a note is attached to a call
-      // (callId set) or standalone. `updatedTs` drives "Recently updated" sort.
+      // Single flat, editable notes collection. Notes are not linked to call
+      // records (unlike the long-term vision). Any note can be `pinned` to keep
+      // it open in the side panel while browsing the rest of the profile.
       const NOTES = [
-        // --- Evolving topic notes (standalone) ---------------------------
+        // --- Evolving topic notes ----------------------------------------
         {
           id: "topic-transport",
           title: "Transportation options",
@@ -708,7 +657,7 @@
           createdWhen: "6 weeks ago",
           updatedWhen: "2 days ago",
           updatedTs: Date.now() - 2 * 24 * 60 * 60 * 1000,
-          callId: null,
+          pinned: false,
           body:
             "Ongoing list of transportation services in Dot's area (Oakland 94612). Tracking cost, booking, and coverage as I learn more.\n\n1) BAY AREA SENIOR RIDES\n• Non-emergency medical transport (NEMT). Door-to-door.\n• Cost: $0 for plan-covered medical trips (Humana benefit — 24 one-way trips/yr).\n• Booking: call 48h ahead, (510) 555-2211. Spoke w/ dispatcher Carla 2/10.\n• Confirmed they serve her building; wheelchair-accessible vans available.\n\n2) EAST BAY PARATRANSIT (AC Transit)\n• Requires ADA eligibility application (~3 wks to process). Sent Dot the form 1/30.\n• Cost: $4 per one-way trip. Broader (non-medical) trips too.\n\n3) GOGOGRANDPARENT (Uber/Lyft concierge)\n• No smartphone needed — books rides by phone. Good backup for last-minute.\n• Cost: ride fare + $0.27/min concierge fee. NOT plan-covered.\n\nOPEN QUESTIONS\n• Confirm whether the 24-trip Humana benefit resets calendar or plan year.",
           versions: [
@@ -738,7 +687,7 @@
           createdWhen: "5 weeks ago",
           updatedWhen: "1 week ago",
           updatedTs: Date.now() - 7 * 24 * 60 * 60 * 1000,
-          callId: null,
+          pinned: false,
           body:
             "Researching in-home care and facility options in case mobility declines. Dot strongly prefers to age in place; treat facilities as contingency only.\n\nIN-HOME CARE AGENCIES\n• Home Instead (Oakland) — $38/hr, 4hr minimum. Screened caregivers. Waitlist ~1wk.\n• Visiting Angels — $35/hr, 3hr minimum. Can start within days.\n\nADULT DAY PROGRAMS\n• Center for Elders' Independence (PACE) — Dot may qualify; keeps seniors at home w/ coordinated care. Great fit — following up.\n\nASSISTED LIVING (contingency)\n• Piedmont Gardens — ~$5,800/mo. Toured virtually. Long waitlist.\n\nNEXT STEPS\n• Check PACE eligibility with Priya (income + care needs).",
           versions: [
@@ -761,7 +710,7 @@
           createdWhen: "4 weeks ago",
           updatedWhen: "4 days ago",
           updatedTs: Date.now() - 4 * 24 * 60 * 60 * 1000,
-          callId: null,
+          pinned: false,
           body:
             "Tracking mobility aid options for Dot's knee osteoarthritis. Goal: reduce fall risk, keep her independent at home.\n\nCURRENT\n• Uses a cane; reports instability on stairs.\n\nOPTIONS RESEARCHED\n• Rollator (4-wheel walker w/ seat) — best for her; seat lets her rest. ~$90 retail.\n  → DME COVERAGE: Humana covers rollators w/ PCP prescription. Asked Dr. Reyes for Rx 2/11.\n• Standard walker — cheaper but no seat; she disliked in the past.\n• Grab bars for bathroom — $0 via plan's OTC benefit ($75/qtr). Ordered 2/8.\n\nNEXT STEPS\n• Confirm rollator model is in Humana's DME catalog before ordering.",
           versions: [
@@ -790,7 +739,7 @@
           createdWhen: "3 weeks ago",
           updatedWhen: "10 days ago",
           updatedTs: Date.now() - 10 * 24 * 60 * 60 * 1000,
-          callId: null,
+          pinned: false,
           body:
             "SUMMARY\nHumana denied the 2/4 knee MRI (CPT 73721) at Bay Imaging. Working the appeal.\n\nDENIAL DETAIL\n• Denial code CO-197: prior authorization not on file.\n• Confirmed with Humana rep (ref #H-88213) that Bay Imaging never submitted the PA before the scan.\n• Member has no financial responsibility while appeal is open — confirmed in writing.\n\nACTIONS TAKEN\n• 2/12 — Requested corrected claim + retro PA from Bay Imaging billing (contact: Renee, ext 4).\n• 2/14 — Bay Imaging submitted retro PA. Reference PA-556120.\n• 2/16 — Humana acknowledged retro PA; routed to clinical review.\n\nSTATUS\nRetro PA approved 2/16. Corrected claim expected to reprocess within 7–10 business days. Will confirm $0 member cost once EOB reposts.\n\nNEXT STEPS\n• Follow up with Humana 2/24 if claim hasn't reprocessed.\n• Send Dot the corrected EOB once available.",
           versions: [
@@ -825,56 +774,57 @@
           createdWhen: "3 weeks ago",
           updatedWhen: "3 weeks ago",
           updatedTs: Date.now() - 21 * 24 * 60 * 60 * 1000,
-          callId: null,
+          pinned: false,
           body:
             "Humana Gold Plus includes $2,000/yr dental allowance. Cleanings 100% covered 2x/yr. Major services 50% after $0 deductible. Shared summary with Dot.\n\nIN-NETWORK DENTISTS NEAR OAKLAND\n• Lakeshore Dental — accepting new patients, 1.2mi.\n• Grand Ave Family Dental — 0.8mi, good reviews.",
           versions: [],
         },
-        // --- Call notes (attached to a call, no title — date only) --------
+        // --- Chronological / call-recap notes (standalone, not linked to
+        //     a call record) ------------------------------------------------
         {
           id: "cn1",
-          title: "",
+          title: "Call recap — knee MRI claim",
           author: "Marcus Bell",
           createdWhen: "2 days ago",
           updatedWhen: "2 days ago",
           updatedTs: Date.now() - 2 * 24 * 60 * 60 * 1000,
-          callId: "c1", // outgoing → client, 2/12
+          pinned: false,
           body:
             "Dot worried about the denied knee MRI claim. Reassured her it's a prior-auth coding issue; Priya is appealing and she owes $0 meanwhile. Also confirmed she's interested in the rollator. Calmer by end of call.\n\nAction: Priya to resubmit; ask Dr. Reyes for rollator Rx.",
           versions: [],
         },
         {
           id: "cn2",
-          title: "",
+          title: "Call recap — Bay Area Senior Rides",
           author: "Marcus Bell",
           createdWhen: "4 days ago",
           updatedWhen: "4 days ago",
           updatedTs: Date.now() - 4 * 24 * 60 * 60 * 1000,
-          callId: "c2", // outgoing → third party (Bay Area Senior Rides)
+          pinned: false,
           body:
             "Called Bay Area Senior Rides dispatcher (Carla). Confirmed NEMT is $0 under Humana benefit (24 one-way trips/yr), wheelchair-accessible vans, 48h booking. They serve Dot's building. Added details to Transportation options note.",
           versions: [],
         },
         {
           id: "cn3",
-          title: "",
+          title: "Call recap — Susan (daughter) re: stairs",
           author: "Marcus Bell",
           createdWhen: "5 days ago",
           updatedWhen: "5 days ago",
           updatedTs: Date.now() - 5 * 24 * 60 * 60 * 1000,
-          callId: "c3", // incoming ← contact (Susan, daughter)
+          pinned: false,
           body:
             "Susan (daughter) called concerned about Dot's stairs after a near-fall. Reassured her we're pursuing a rollator + bathroom grab bars. She'll help set up the grab bars when they arrive. Gave her the AWV scheduling context.",
           versions: [],
         },
         {
           id: "cn4",
-          title: "",
+          title: "Call recap — dental benefits",
           author: "Marcus Bell",
           createdWhen: "3 weeks ago",
           updatedWhen: "3 weeks ago",
           updatedTs: Date.now() - 20 * 24 * 60 * 60 * 1000,
-          callId: "c4", // incoming ← client, 1/28
+          pinned: false,
           body:
             "Dot called about dental benefits. Walked through coverage and shared two in-network dentists nearby. Very appreciative. No open items.",
           versions: [],
@@ -955,8 +905,7 @@
           when: "2 days ago",
           source: { kind: "call", id: "c1" },
           title: "Outgoing call · Dorothy Whitfield (client)",
-          preview:
-            "Dot worried about the denied knee MRI claim. Reassured her; confirmed rollator interest. Calmer by end of call.",
+          meta: "Connected · 12m 04s",
         },
         {
           id: "e4",
@@ -965,8 +914,7 @@
           when: "4 days ago",
           source: { kind: "call", id: "c2" },
           title: "Outgoing call · Bay Area Senior Rides (third party)",
-          preview:
-            "Called dispatcher (Carla). Confirmed $0 NEMT under Humana benefit, accessible vans, 48h booking. Added to Transportation options note.",
+          meta: "Connected · 6m 12s",
         },
         {
           id: "e5",
@@ -997,8 +945,7 @@
           when: "5 days ago",
           source: { kind: "call", id: "c3" },
           title: "Incoming call · Susan Whitfield (contact)",
-          preview:
-            "Daughter called concerned about Dot's stairs after a near-fall. Reassured her about rollator + grab bars plan.",
+          meta: "Connected · 8m 47s",
         },
         {
           id: "e8",
@@ -1046,8 +993,7 @@
           when: "3 weeks ago",
           source: { kind: "call", id: "c4" },
           title: "Incoming call · Dorothy Whitfield (client)",
-          preview:
-            "Dot called about dental benefits. Walked through coverage; shared two in-network dentists nearby.",
+          meta: "Connected · 18m 51s",
         },
       ];
 
@@ -1061,7 +1007,7 @@
         </Box>
       );
 
-      const LeftSidebar = ({ onStartCall, onStartText, callActive, nextCallOpen, onToggleNextCall }) => (
+      const LeftSidebar = ({ onStartCall, onStartText }) => (
         <Box
           sx={{
             width: 300,
@@ -1111,10 +1057,9 @@
                 color="success"
                 startIcon={<PhoneIcon />}
                 onClick={onStartCall}
-                disabled={callActive}
                 sx={{ fontSize: 12 }}
               >
-                {callActive ? "On call" : "Call"}
+                Call
               </Button>
               <Button
                 fullWidth
@@ -1134,24 +1079,6 @@
                 </IconButton>
               </Tooltip>
             </Stack>
-
-            {/* Next-call working note toggle */}
-            <Button
-              fullWidth
-              variant={nextCallOpen ? "outlined" : "text"}
-              startIcon={<UpcomingIcon />}
-              onClick={onToggleNextCall}
-              disabled={callActive}
-              sx={{
-                mt: 1,
-                fontSize: 12,
-                justifyContent: "flex-start",
-                color: nextCallOpen ? colors.primary : colors.labelText,
-                borderColor: colors.border,
-              }}
-            >
-              {nextCallOpen ? "Next-call note (open)" : "Next-call note"}
-            </Button>
           </Box>
 
           {/* Basic info */}
@@ -1486,9 +1413,9 @@
 
       // --- Activity type config: icon, tint, verb, and source label ---------
       const ACTIVITY_META = {
-        research_update: { verb: "updated research note", tint: "#9164ff", bg: "#f3eeff", Icon: EditNoteIcon, cta: "Open note" },
+        research_update: { verb: "updated a note", tint: "#9164ff", bg: "#f3eeff", Icon: EditNoteIcon, cta: "Open note" },
         note: { verb: "added a note", tint: colors.primary, bg: "#F3FAFF", Icon: NotesIcon, cta: "Open note" },
-        call: { verb: "logged a call", tint: colors.green, bg: "#eef7ef", Icon: PhoneInTalkIcon, cta: "Open call" },
+        call: { verb: "logged a call", tint: colors.green, bg: "#eef7ef", Icon: PhoneInTalkIcon, cta: "View in Communication" },
         task_created: { verb: "created a task", tint: "#00897b", bg: "#e6f4f2", Icon: PlaylistAddCheckIcon, cta: "Open task" },
         task_status: { verb: "updated a task", tint: "#00897b", bg: "#e6f4f2", Icon: TaskAltIcon, cta: "Open task" },
         document: { verb: "uploaded a document", tint: "#ef6c00", bg: "#fff3e0", Icon: DescriptionOutlinedIcon, cta: "Open document" },
@@ -1684,7 +1611,7 @@
       // An inline, expandable + editable note card. Guides can expand a note
       // and edit it in place — e.g. update a research note while the call
       // panel is open on the right and they're taking call notes.
-      const NoteCard = ({ note, call, expanded, onToggle, onSave, onOpenCall, autoFocus }) => {
+      const NoteCard = ({ note, expanded, onToggle, onSave, onTogglePin, autoFocus }) => {
         // Notion-style: expanding a note drops straight into an editable
         // document. Title + body live on one continuous surface and edits
         // save on change — no separate edit mode or Save/Cancel buttons.
@@ -1692,8 +1619,7 @@
         const [body, setBody] = useState(note.body);
         const bodyRef = useRef(null);
 
-        // Sync local draft when the underlying note changes externally
-        // (e.g. navigated to, or updated elsewhere) while not focused here.
+        // Sync local draft when the underlying note changes externally.
         useEffect(() => { setTitle(note.title); }, [note.title]);
         useEffect(() => { setBody(note.body); }, [note.body]);
 
@@ -1716,8 +1642,7 @@
               backgroundColor: "#fff",
             }}
           >
-            {/* header row (click to expand). No caret — click anywhere.
-                Call notes have no title, so they show the call date instead. */}
+            {/* header row (click to expand). No caret — click anywhere. */}
             <Box
               onClick={() => onToggle(note.id)}
               sx={{
@@ -1730,21 +1655,9 @@
               }}
             >
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.25, flexWrap: "wrap" }}>
-                  {call ? (
-                    <>
-                      <CallDirection direction={call.direction} />
-                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText }}>
-                        Call · {call.when}
-                      </Typography>
-                      <PartyPill party={call.party} />
-                    </>
-                  ) : (
-                    <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText }}>
-                      {note.title || "Untitled note"}
-                    </Typography>
-                  )}
-                </Stack>
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText }}>
+                  {note.title || "Untitled note"}
+                </Typography>
                 {/* Author is hidden until expanded (usually the dedicated guide). */}
                 {!expanded && (
                   <Typography
@@ -1762,57 +1675,54 @@
                     {note.body}
                   </Typography>
                 )}
-                {!expanded && !call && (
+                {!expanded && (
                   <Typography sx={{ fontSize: 11.5, color: colors.timestampText, mt: 0.5 }}>
                     Updated {note.updatedWhen}
                   </Typography>
                 )}
               </Box>
+              {/* Pin toggle — keep this note open in the side panel */}
+              <Tooltip title={note.pinned ? "Unpin" : "Pin to keep open"}>
+                <IconButton
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); onTogglePin(note.id); }}
+                  sx={{ flexShrink: 0, color: note.pinned ? colors.primary : colors.mutedText }}
+                >
+                  {note.pinned ? <PushPinIcon sx={{ fontSize: 18 }} /> : <PushPinOutlinedIcon sx={{ fontSize: 18 }} />}
+                </IconButton>
+              </Tooltip>
             </Box>
 
             {/* expanded: editable Notion-style document */}
             <Collapse in={expanded} timeout="auto" unmountOnExit>
               <Box sx={{ px: 1.5, pb: 1.5, pt: 0 }}>
                 <Divider sx={{ borderColor: colors.lightBorder, mb: 0.5 }} />
-                {/* Author shown on expand (usually the dedicated guide).
-                    Call notes also show who the call was with. */}
-                <Stack direction="row" spacing={0.75} alignItems="center" sx={{ my: 1, flexWrap: "wrap" }}>
+                {/* Author shown on expand (usually the dedicated guide). */}
+                <Stack direction="row" spacing={0.75} alignItems="center" sx={{ my: 1 }}>
                   <UserAvatar name={note.author} colorSeed={note.author} sx={{ width: 18, height: 18, fontSize: 8 }} />
                   <Typography sx={{ fontSize: 11.5, color: colors.labelText }}>
-                    {call
-                      ? `Logged by ${note.author} · ${call.when}`
-                      : `${note.author} · updated ${note.updatedWhen}`}
+                    {note.author} · updated {note.updatedWhen}
                   </Typography>
-                  {call && (
-                    <>
-                      <Typography sx={{ fontSize: 11.5, color: colors.mutedText }}>·</Typography>
-                      <CallDirection direction={call.direction} />
-                      <PartyPill party={call.party} />
-                    </>
-                  )}
                 </Stack>
-                {/* Single continuous document surface: title + body, borderless.
-                    Call notes have no title (date-only). */}
+                {/* Single continuous document surface: title + body, borderless. */}
                 <Box>
-                  {!call && (
-                    <TextField
-                      variant="standard"
-                      placeholder="Untitled note"
-                      value={title}
-                      onChange={(e) => commitTitle(e.target.value)}
-                      fullWidth
-                      InputProps={{ disableUnderline: true }}
-                      sx={{
-                        "& .MuiInputBase-input": {
-                          fontSize: 20,
-                          fontWeight: 700,
-                          color: colors.primaryText,
-                          padding: "2px 0 2px",
-                          lineHeight: 1.3,
-                        },
-                      }}
-                    />
-                  )}
+                  <TextField
+                    variant="standard"
+                    placeholder="Untitled note"
+                    value={title}
+                    onChange={(e) => commitTitle(e.target.value)}
+                    fullWidth
+                    InputProps={{ disableUnderline: true }}
+                    sx={{
+                      "& .MuiInputBase-input": {
+                        fontSize: 20,
+                        fontWeight: 700,
+                        color: colors.primaryText,
+                        padding: "2px 0 2px",
+                        lineHeight: 1.3,
+                      },
+                    }}
+                  />
                   <TextField
                     ref={bodyRef}
                     variant="standard"
@@ -1835,16 +1745,15 @@
                   />
                 </Box>
 
-                {/* subtle footer: call link + created/edit metadata */}
+                {/* subtle footer: pin action + created/edit metadata */}
                 <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 1.5 }}>
-                  {call && (
-                    <ButtonBase
-                      onClick={() => onOpenCall(call)}
-                      sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, fontSize: 12, fontWeight: 500, color: colors.primary }}
-                    >
-                      View call record <EastIcon sx={{ fontSize: 13 }} />
-                    </ButtonBase>
-                  )}
+                  <ButtonBase
+                    onClick={(e) => { e.stopPropagation(); onTogglePin(note.id); }}
+                    sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, fontSize: 12, fontWeight: 500, color: colors.primary }}
+                  >
+                    {note.pinned ? <PushPinIcon sx={{ fontSize: 14 }} /> : <PushPinOutlinedIcon sx={{ fontSize: 14 }} />}
+                    {note.pinned ? "Pinned — keeping open" : "Pin to keep open"}
+                  </ButtonBase>
                   <Typography sx={{ fontSize: 11.5, color: colors.timestampText }}>
                     Created {note.createdWhen}
                     {note.versions && note.versions.length > 0
@@ -1858,58 +1767,35 @@
         );
       };
 
-      const sortLabel = (n) => n.title || "Call note";
       const SORTS = {
         updated: { label: "Recently updated", fn: (a, b) => b.updatedTs - a.updatedTs },
         oldest: { label: "Oldest first", fn: (a, b) => a.updatedTs - b.updatedTs },
-        title: { label: "Title (A–Z)", fn: (a, b) => sortLabel(a).localeCompare(sortLabel(b)) },
+        title: { label: "Title (A–Z)", fn: (a, b) => (a.title || "").localeCompare(b.title || "") },
       };
 
       const NotesPanel = ({
         notes,
-        callsById,
         expandedId,
         onToggleExpand,
         onSaveNote,
         onNewNote,
-        onOpenCall,
+        onTogglePin,
         autoEditId,
       }) => {
         const [q, setQ] = useState("");
         const [sortKey, setSortKey] = useState("updated"); // default: recently updated
-        const [filter, setFilter] = useState("all"); // all | call | standalone
         const [sortAnchor, setSortAnchor] = useState(null);
 
         const visible = useMemo(() => {
-          let arr = notes.filter((n) => (n.title + n.body).toLowerCase().includes(q.toLowerCase()));
-          if (filter === "call") arr = arr.filter((n) => n.callId);
-          if (filter === "standalone") arr = arr.filter((n) => !n.callId);
+          const arr = notes.filter((n) => (n.title + n.body).toLowerCase().includes(q.toLowerCase()));
           return [...arr].sort(SORTS[sortKey].fn);
-        }, [notes, q, sortKey, filter]);
-
-        const FilterChip = ({ value, label }) => (
-          <Chip
-            size="small"
-            label={label}
-            onClick={() => setFilter(value)}
-            variant={filter === value ? "filled" : "outlined"}
-            sx={{
-              height: 26,
-              fontSize: 12,
-              borderRadius: "4px",
-              cursor: "pointer",
-              ...(filter === value
-                ? { backgroundColor: colors.selectedBg, color: colors.primary, border: `1px solid ${colors.primary}` }
-                : { color: colors.labelText, borderColor: colors.border }),
-            }}
-          />
-        );
+        }, [notes, q, sortKey]);
 
         return (
           <PanelWrap>
             <Box sx={{ maxWidth: 720 }}>
               {/* toolbar */}
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
                 <TextField
                   size="small"
                   placeholder="Search notes"
@@ -1944,25 +1830,17 @@
                 </Button>
               </Stack>
 
-              {/* filter row */}
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-                <FilterChip value="all" label={`All (${notes.length})`} />
-                <FilterChip value="call" label={`On a call (${notes.filter((n) => n.callId).length})`} />
-                <FilterChip value="standalone" label={`Standalone (${notes.filter((n) => !n.callId).length})`} />
-              </Stack>
-
               {/* list */}
               <Stack spacing={1.25}>
                 {visible.map((n) => (
                   <NoteCard
                     key={n.id}
                     note={n}
-                    call={n.callId ? callsById[n.callId] : null}
                     expanded={expandedId === n.id}
                     autoFocus={autoEditId === n.id}
                     onToggle={onToggleExpand}
                     onSave={onSaveNote}
-                    onOpenCall={onOpenCall}
+                    onTogglePin={onTogglePin}
                   />
                 ))}
                 {visible.length === 0 && <PreviewCardEmpty text="No notes match your search." />}
@@ -2016,141 +1894,117 @@
         );
       };
 
-      // Per-medium presentation for the communication thread.
-      const COMM_MEDIUM = {
-        call: { label: "Call", Icon: PhoneInTalkIcon, tint: colors.green, bg: "#eef7ef" },
-        text: { label: "Text", Icon: SmsOutlinedIcon, tint: colors.primary, bg: "#F3FAFF" },
-        email: { label: "Email", Icon: EmailOutlinedIcon, tint: "#9164ff", bg: "#f3eeff" },
-      };
+      // Communication tab — reflects the original "Client Communications"
+      // profile card (settings + a call log), redesigned to fill the tab.
+      // Calls are the logged records (no notes attached); texts/emails are the
+      // client-facing channels configured here and opened in their own tools.
+      const CommunicationPanel = ({ calls, comms, onOpen, onAction }) => {
+        // Newest-first call log.
+        const callLog = useMemo(() => [...calls].sort((a, b) => b.ts - a.ts), [calls]);
 
-      // One row in the unified communication thread.
-      const CommItem = ({ item, note, onOpen }) => {
-        const medium = COMM_MEDIUM[item.medium];
-        const { Icon } = medium;
-        const preview =
-          item.medium === "call"
-            ? note?.body || null
-            : item.body;
-        return (
-          <Stack direction="row" spacing={1.5} alignItems="flex-start">
-            {/* medium marker */}
-            <Box
-              sx={{
-                width: 34,
-                height: 34,
-                borderRadius: "50%",
-                backgroundColor: medium.bg,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                mt: 0.25,
-              }}
-            >
-              <Icon sx={{ fontSize: 18, color: medium.tint }} />
-            </Box>
-
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <PreviewCard title={item.when} onClick={() => onOpen(item)}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ width: "100%", flexWrap: "wrap", gap: 0.75 }}>
-                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: medium.tint }}>{medium.label}</Typography>
-                  <CallDirection direction={item.direction} />
-                  <PartyPill party={item.party} />
-                  <Box sx={{ flex: 1 }} />
-                  {item.medium === "call" && (
-                    <Typography sx={{ fontSize: 12, color: colors.labelText }}>
-                      {item.outcome} · {item.duration}
-                    </Typography>
-                  )}
-                </Stack>
-                {item.subject && (
-                  <Typography sx={{ fontSize: 13, fontWeight: 600, color: colors.primaryText, textAlign: "left", width: "100%" }}>
-                    {item.subject}
-                  </Typography>
-                )}
-                {preview ? (
-                  <Typography
-                    sx={{
-                      fontSize: 13,
-                      color: colors.secondaryText,
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                      textAlign: "left",
-                      width: "100%",
-                    }}
-                  >
-                    {preview}
-                  </Typography>
-                ) : (
-                  item.medium === "call" && (
-                    <Typography sx={{ fontSize: 12, color: colors.mutedText, fontStyle: "italic", textAlign: "left", width: "100%" }}>
-                      No note attached
-                    </Typography>
-                  )
-                )}
-              </PreviewCard>
-            </Box>
+        const SettingRow = ({ label, value, hint }) => (
+          <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ py: 0.5 }}>
+            <Stack>
+              <Typography sx={{ fontSize: 13, color: colors.labelText }}>{label}</Typography>
+              {hint && <Typography sx={{ fontSize: 11, color: colors.mutedText }}>{hint}</Typography>}
+            </Stack>
+            <Typography sx={{ fontSize: 13, color: colors.primaryText, textAlign: "right" }}>{value}</Typography>
           </Stack>
         );
-      };
-
-      const COMM_FILTERS = {
-        all: { label: "All", test: () => true },
-        call: { label: "Calls", test: (i) => i.medium === "call" },
-        text: { label: "Texts", test: (i) => i.medium === "text" },
-        email: { label: "Emails", test: (i) => i.medium === "email" },
-      };
-
-      const CommunicationPanel = ({ calls, messages, notes, onOpen }) => {
-        const [filter, setFilter] = useState("all");
-        // Merge every medium and sort as one chronological thread (newest first).
-        const thread = useMemo(
-          () => [...calls, ...messages].sort((a, b) => b.ts - a.ts),
-          [calls, messages],
-        );
-        const visible = thread.filter(COMM_FILTERS[filter].test);
-
-        const FilterChip = ({ value }) => {
-          const count = value === "all" ? thread.length : thread.filter(COMM_FILTERS[value].test).length;
-          return (
-            <Chip
-              size="small"
-              label={`${COMM_FILTERS[value].label} (${count})`}
-              onClick={() => setFilter(value)}
-              variant={filter === value ? "filled" : "outlined"}
-              sx={{
-                height: 26,
-                fontSize: 12,
-                borderRadius: "4px",
-                cursor: "pointer",
-                ...(filter === value
-                  ? { backgroundColor: colors.selectedBg, color: colors.primary, border: `1px solid ${colors.primary}` }
-                  : { color: colors.labelText, borderColor: colors.border }),
-              }}
-            />
-          );
-        };
 
         return (
           <PanelWrap>
-            <Box sx={{ maxWidth: 720 }}>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-                {Object.keys(COMM_FILTERS).map((k) => (
-                  <FilterChip key={k} value={k} />
-                ))}
+            <Box sx={{ display: "grid", gridTemplateColumns: "minmax(260px, 320px) 1fr", gap: 3, alignItems: "start" }}>
+              {/* LEFT: communication settings + channels (from the original card) */}
+              <Stack spacing={2}>
+                <Box>
+                  <SectionLabel sx={{ mb: 1 }}>Client communications</SectionLabel>
+                  <Box sx={{ border: `1px solid ${colors.lightBorder}`, borderRadius: "6px", p: 1.5 }}>
+                    <SettingRow label="Client-facing number" value={comms.clientFacingNumber} />
+                    <Divider sx={{ borderColor: colors.lightBorder, my: 0.5 }} />
+                    <SettingRow label="Forwarding email" value={comms.forwardingEmail} />
+                    <Divider sx={{ borderColor: colors.lightBorder, my: 0.5 }} />
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ py: 0.5 }}>
+                      <Typography sx={{ fontSize: 13, color: colors.labelText }}>
+                        Forward incoming/outgoing email to client
+                      </Typography>
+                      <YesNo value={comms.forwardToClient} />
+                    </Stack>
+                  </Box>
+                </Box>
+
+                <Box>
+                  <SectionLabel sx={{ mb: 1 }}>Channels</SectionLabel>
+                  <Stack spacing={1}>
+                    <Button
+                      variant="outlined"
+                      startIcon={<EmailOutlinedIcon />}
+                      onClick={() => onAction("Email on client's behalf")}
+                      sx={{ justifyContent: "flex-start", fontSize: 12, textTransform: "none", borderColor: colors.border, color: colors.secondaryText }}
+                    >
+                      Email on client&rsquo;s behalf
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      startIcon={<SmsOutlinedIcon />}
+                      onClick={() => onAction("Text messages")}
+                      sx={{ justifyContent: "flex-start", fontSize: 12, textTransform: "none", borderColor: colors.border, color: colors.secondaryText }}
+                    >
+                      Text messages
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      startIcon={<PhoneIcon />}
+                      onClick={() => onAction("Call client — web survey number")}
+                      sx={{ justifyContent: "flex-start", fontSize: 12, textTransform: "none", borderColor: colors.border, color: colors.secondaryText }}
+                    >
+                      Call client &mdash; web survey number
+                    </Button>
+                  </Stack>
+                </Box>
               </Stack>
-              <Stack spacing={1.25}>
-                {visible.map((item) => (
-                  <CommItem
-                    key={item.id}
-                    item={item}
-                    note={item.medium === "call" ? notes.find((n) => n.callId === item.id) : null}
-                    onOpen={onOpen}
-                  />
+
+              {/* RIGHT: call log */}
+              <Box>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                  <SectionLabel>Call log</SectionLabel>
+                  <Typography sx={mutedTextSx}>{callLog.length} calls</Typography>
+                </Stack>
+                {/* header row */}
+                <Stack
+                  direction="row"
+                  sx={{ px: 1.5, py: 1, borderBottom: `1px solid ${colors.border}` }}
+                >
+                  <Typography sx={{ ...tableHeaderLike, flex: 2 }}>Date</Typography>
+                  <Typography sx={{ ...tableHeaderLike, flex: 2 }}>Caller</Typography>
+                  <Typography sx={{ ...tableHeaderLike, flex: 1 }}>Duration</Typography>
+                  <Typography sx={{ ...tableHeaderLike, flex: 1.4, textAlign: "right" }}>Direction</Typography>
+                </Stack>
+                {callLog.map((c) => (
+                  <Stack
+                    key={c.id}
+                    direction="row"
+                    alignItems="center"
+                    onClick={() => onOpen(c)}
+                    sx={{
+                      px: 1.5,
+                      py: 1.25,
+                      borderBottom: `1px solid ${colors.lightBorder}`,
+                      cursor: "pointer",
+                      "&:hover": { backgroundColor: colors.cardHoverBg },
+                    }}
+                  >
+                    <Typography sx={{ flex: 2, fontSize: 13, color: colors.primaryText }}>{c.when}</Typography>
+                    <Box sx={{ flex: 2, minWidth: 0, pr: 1 }}>
+                      <PartyPill party={c.party} />
+                    </Box>
+                    <Typography sx={{ flex: 1, fontSize: 13, color: colors.secondaryText }}>{c.duration}</Typography>
+                    <Box sx={{ flex: 1.4, display: "flex", justifyContent: "flex-end" }}>
+                      <CallDirection direction={c.direction} />
+                    </Box>
+                  </Stack>
                 ))}
-              </Stack>
+              </Box>
             </Box>
           </PanelWrap>
         );
@@ -2277,66 +2131,10 @@
         </Stack>
       );
 
-      // Compact call-controls strip shown at the top of the Next-call pane
-      // while a call is live.
-      const CallControls = ({ onEnd }) => {
-        const [seconds, setSeconds] = useState(0);
-        const [muted, setMuted] = useState(false);
-        useEffect(() => {
-          const id = setInterval(() => setSeconds((s) => s + 1), 1000);
-          return () => clearInterval(id);
-        }, []);
-        const mmss = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-        return (
-          <Box sx={{ p: 2, borderBottom: `1px solid ${colors.lightBorder}`, flexShrink: 0, backgroundColor: "#f8fdf8" }}>
-            <Stack direction="row" spacing={1.25} alignItems="center">
-              <UserAvatar name={CLIENT.name} colorSeed={CLIENT.name} sx={{ width: 40, height: 40, fontSize: 15 }} />
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText, lineHeight: 1.2 }}>{CLIENT.name}</Typography>
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                  <Box sx={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: colors.green }} />
-                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: colors.green }}>Connected · {mmss}</Typography>
-                </Stack>
-              </Box>
-              <Tooltip title={muted ? "Unmute" : "Mute"}>
-                <IconButton
-                  size="small"
-                  onClick={() => setMuted((m) => !m)}
-                  sx={{ border: `1px solid ${colors.border}`, backgroundColor: muted ? "#FFCDD2" : "transparent" }}
-                >
-                  {muted ? <MicOffIcon fontSize="small" /> : <MicIcon fontSize="small" />}
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Keypad">
-                <IconButton size="small" sx={{ border: `1px solid ${colors.border}` }}><DialpadIcon fontSize="small" /></IconButton>
-              </Tooltip>
-              <Tooltip title="End call">
-                <IconButton
-                  size="small"
-                  onClick={onEnd}
-                  sx={{ backgroundColor: colors.red, color: "#fff", "&:hover": { backgroundColor: "#b71c1c" } }}
-                >
-                  <CallEndIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </Stack>
-          </Box>
-        );
-      };
-
-      // Persistent "Next call" note pane. Between calls it's a working plan
-      // the guide builds up from research across many notes. During a call it
-      // becomes the live outline + capture surface. On end call it's archived
-      // as a historical call note and reset to a fresh blank plan.
-      const NextCallPane = ({ note, onChange, onClose, onStartCall, onEndCall, callActive }) => {
-        const bodyRef = useRef(null);
-        useEffect(() => {
-          if (callActive && bodyRef.current) {
-            const el = bodyRef.current.querySelector("textarea");
-            if (el) el.focus();
-          }
-        }, [callActive]);
-
+      // Pinned-note side panel. Any note can be pinned to keep it open on the
+      // right while browsing the rest of the profile. Editable in place — the
+      // same title + body document surface as the note card.
+      const PinnedNotePane = ({ note, onChange, onUnpin, onClose }) => {
         return (
           <>
             {/* header */}
@@ -2347,32 +2145,46 @@
               sx={{ px: 2, py: 1.25, borderBottom: `1px solid ${colors.lightBorder}`, flexShrink: 0 }}
             >
               <Stack direction="row" alignItems="center" spacing={1}>
-                <UpcomingIcon sx={{ fontSize: 18, color: callActive ? colors.green : colors.primary }} />
-                <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText }}>
-                  {callActive ? "On call · working note" : "Next call"}
-                </Typography>
+                <PushPinIcon sx={{ fontSize: 16, color: colors.primary }} />
+                <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText }}>Pinned note</Typography>
               </Stack>
-              <Tooltip title="Collapse panel">
-                <IconButton size="small" onClick={onClose}><ChevronRightIcon fontSize="small" /></IconButton>
-              </Tooltip>
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <Tooltip title="Unpin">
+                  <IconButton size="small" onClick={onUnpin}><PushPinIcon fontSize="small" sx={{ color: colors.primary }} /></IconButton>
+                </Tooltip>
+                <Tooltip title="Collapse panel">
+                  <IconButton size="small" onClick={onClose}><ChevronRightIcon fontSize="small" /></IconButton>
+                </Tooltip>
+              </Stack>
             </Stack>
 
-            {callActive && <CallControls onEnd={onEndCall} />}
-
-            {/* the working document (title + body, Notion-style) */}
+            {/* editable document */}
             <Box sx={{ px: 2, pt: 1.5, pb: 2, display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-              {!callActive && (
-                <Typography sx={{ fontSize: 11.5, color: colors.labelText, mb: 1.5, lineHeight: 1.5 }}>
-                  Draft the outline for your next conversation here. It stays with you as you
-                  browse the profile, and becomes the live note when you start the call.
-                </Typography>
-              )}
-              <Box ref={bodyRef} sx={{ flex: 1, minHeight: 0, display: "flex" }}>
+              <TextField
+                variant="standard"
+                placeholder="Untitled note"
+                value={note.title}
+                onChange={(e) => onChange(note.id, { title: e.target.value })}
+                fullWidth
+                InputProps={{ disableUnderline: true }}
+                sx={{
+                  "& .MuiInputBase-input": {
+                    fontSize: 18,
+                    fontWeight: 700,
+                    color: colors.primaryText,
+                    padding: "2px 0 4px",
+                  },
+                }}
+              />
+              <Typography sx={{ fontSize: 11.5, color: colors.labelText, mb: 1 }}>
+                {note.author} · updated {note.updatedWhen}
+              </Typography>
+              <Box sx={{ flex: 1, minHeight: 0, display: "flex" }}>
                 <TextField
                   variant="standard"
-                  placeholder={"• Topics to cover\n• Questions to ask\n• Updates to share…"}
+                  placeholder="Start writing…"
                   value={note.body}
-                  onChange={(e) => onChange({ body: e.target.value })}
+                  onChange={(e) => onChange(note.id, { body: e.target.value })}
                   fullWidth
                   multiline
                   InputProps={{ disableUnderline: true }}
@@ -2384,22 +2196,12 @@
                   }}
                 />
               </Box>
-
-              {callActive ? (
-                <Button variant="contained" color="error" startIcon={<CallEndIcon />} sx={{ mt: 1.5, fontSize: 12 }} onClick={onEndCall}>
-                  End call &amp; archive note
-                </Button>
-              ) : (
-                <Button variant="contained" color="success" startIcon={<PhoneIcon />} sx={{ mt: 1.5, fontSize: 12 }} onClick={onStartCall}>
-                  Start call with this plan
-                </Button>
-              )}
             </Box>
           </>
         );
       };
 
-      const CallDetailPane = ({ call, note, onClose, onOpenNote }) => {
+      const CallDetailPane = ({ call, onClose }) => {
         const partyMeta = CALL_PARTY[call.party.kind] || CALL_PARTY.client;
         return (
           <>
@@ -2419,66 +2221,6 @@
               <InfoRow label="When" value={call.when} />
               <InfoRow label="Duration" value={call.duration} />
               <InfoRow label="Outcome" value={call.outcome} />
-              <Divider sx={{ borderColor: colors.lightBorder }} />
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
-                <SectionLabel>Attached note</SectionLabel>
-                {note && (
-                  <ButtonBase
-                    onClick={() => onOpenNote(note)}
-                    sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, fontSize: 12, fontWeight: 500, color: colors.primary }}
-                  >
-                    Open in Notes <EastIcon sx={{ fontSize: 13 }} />
-                  </ButtonBase>
-                )}
-              </Stack>
-              {note ? (
-                <Box sx={{ border: `1px solid ${colors.lightBorder}`, borderRadius: "3px", p: 1.5 }}>
-                  <Typography sx={{ fontSize: 11.5, color: colors.labelText, mb: 1 }}>
-                    {note.author} · {note.updatedWhen}
-                  </Typography>
-                  <Typography sx={{ fontSize: 14, color: colors.primaryText, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{note.body}</Typography>
-                </Box>
-              ) : (
-                <PreviewCardEmpty text="No note attached to this call." />
-              )}
-            </Box>
-          </>
-        );
-      };
-
-      const MessageDetailPane = ({ message, onClose }) => {
-        const medium = COMM_MEDIUM[message.medium];
-        const partyMeta = CALL_PARTY[message.party.kind] || CALL_PARTY.client;
-        return (
-          <>
-            <PaneHeader title={medium.label + " detail"} onClose={onClose} />
-            <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1.5, overflowY: "auto" }}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <medium.Icon sx={{ fontSize: 16, color: medium.tint }} />
-                <Typography sx={{ fontSize: 12, fontWeight: 600, color: medium.tint }}>{medium.label}</Typography>
-                <Typography sx={{ fontSize: 12, color: colors.mutedText }}>·</Typography>
-                <CallDirection direction={message.direction} />
-              </Stack>
-              <Stack direction="row" spacing={1.25} alignItems="center">
-                <Box sx={{ width: 36, height: 36, borderRadius: "50%", backgroundColor: partyMeta.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <partyMeta.Icon sx={{ fontSize: 20, color: partyMeta.tint }} />
-                </Box>
-                <Box>
-                  <Typography sx={{ fontSize: 16, fontWeight: 700, color: colors.primaryText, lineHeight: 1.2 }}>{message.party.name}</Typography>
-                  <Typography sx={{ fontSize: 11.5, color: colors.labelText }}>
-                    {message.direction === "outgoing" ? "To" : "From"} · {partyMeta.label}
-                  </Typography>
-                </Box>
-              </Stack>
-              <InfoRow label="When" value={message.when} />
-              {message.subject && <InfoRow label="Subject" value={message.subject} />}
-              <Divider sx={{ borderColor: colors.lightBorder }} />
-              <SectionLabel>{message.medium === "email" ? "Message" : "Transcript"}</SectionLabel>
-              <Box sx={{ border: `1px solid ${colors.lightBorder}`, borderRadius: "3px", p: 1.5 }}>
-                <Typography sx={{ fontSize: 14, color: colors.primaryText, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-                  {message.body}
-                </Typography>
-              </Box>
             </Box>
           </>
         );
@@ -2533,33 +2275,19 @@
         const [tasks, setTasks] = useState(TASKS);
         const [notes, setNotes] = useState(NOTES);
         const [calls, setCalls] = useState(CALLS);
-        const [messages, setMessages] = useState(MESSAGES);
-        // right pane: { type: 'call' | 'note' | 'callDetail' | 'taskDetail', data }
+        // right pane: { type: 'callDetail' | 'taskDetail', data }
         const [pane, setPane] = useState(null);
         const [toast, setToast] = useState("");
         // Inline expand/edit state for the notes list.
         const [expandedNoteId, setExpandedNoteId] = useState(null);
         const [autoEditNoteId, setAutoEditNoteId] = useState(null);
+        // Whether the pinned-note side panel is expanded (vs. collapsed to a tab).
+        const [pinnedPaneOpen, setPinnedPaneOpen] = useState(true);
 
-        // Persistent "Next call" working note. Survives tab navigation and
-        // pane open/close. During a call it doubles as the live capture note.
-        const NEXT_CALL_SEED = {
-          title: "Prep · benefits & mobility follow-ups",
-          body:
-            "TOPICS TO COVER\n• Knee MRI claim — retro PA approved, corrected claim reprocessing (from “Knee MRI claim” note)\n• Transportation — share the 2 NEMT options I found (see “Transportation options” research)\n• Mobility aids — walker vs. rollator; confirm DME coverage\n\nQUESTIONS TO ASK\n• Has the corrected EOB arrived in the mail yet?\n• Is she comfortable scheduling the Annual Wellness Visit now?\n• Any falls or mobility concerns since last call?\n\nUPDATES TO SHARE\n• Dental: $2,000/yr allowance confirmed — can book cleaning anytime",
-        };
-        const [nextCallNote, setNextCallNote] = useState(NEXT_CALL_SEED);
-        const [nextCallOpen, setNextCallOpen] = useState(true);
-        const [activeCallId, setActiveCallId] = useState(null); // set while a call is live
-
-        const callsById = useMemo(
-          () => Object.fromEntries(calls.map((c) => [c.id, c])),
-          [calls],
-        );
+        const pinnedNote = notes.find((n) => n.pinned) || null;
 
         const findNote = (id) => notes.find((n) => n.id === id);
         const findCall = (id) => calls.find((c) => c.id === id);
-        const noteForCall = (callId) => notes.find((n) => n.callId === callId);
 
         const toggleTask = (id) =>
           setTasks((ts) =>
@@ -2592,7 +2320,7 @@
             createdWhen: "just now",
             updatedWhen: "just now",
             updatedTs: Date.now(),
-            callId: null,
+            pinned: false,
             body: "",
             versions: [],
           };
@@ -2605,66 +2333,31 @@
           setExpandedNoteId((cur) => (cur === id ? null : id));
           setAutoEditNoteId(null);
         };
-        // Open a note inline in the center list (from activity / call detail).
+        // Open a note inline in the center list (from the feed).
         const openNoteInline = (note) => {
           setTab("notes");
           setExpandedNoteId(note.id);
           setAutoEditNoteId(null);
         };
 
-        // --- Next call working note --------------------------------------
-        const changeNextCall = (patch) =>
-          setNextCallNote((n) => ({ ...n, ...patch }));
-        const openNextCall = () => setNextCallOpen(true);
-        const closeNextCall = () => setNextCallOpen(false);
+        // --- Pinning ------------------------------------------------------
+        // Only one note is pinned at a time (keeps the side panel simple).
+        // Pinning opens the panel; unpinning clears it.
+        const togglePin = (id) => {
+          setNotes((ns) =>
+            ns.map((n) =>
+              n.id === id ? { ...n, pinned: !n.pinned } : { ...n, pinned: false },
+            ),
+          );
+          const willPin = !(notes.find((n) => n.id === id)?.pinned);
+          if (willPin) setPinnedPaneOpen(true);
+        };
+        const unpin = () => setNotes((ns) => ns.map((n) => ({ ...n, pinned: false })));
 
-        // --- Calls --------------------------------------------------------
-        // Starting a call turns the Next-call plan into the live working note.
-        const startCall = () => {
-          setActiveCallId("call-" + Date.now());
-          setPane(null); // give the working note the whole right pane
-          setNextCallOpen(true);
-        };
-        // Ending a call archives the working note as a historical, call-attached
-        // note, then resets the Next-call note to a fresh blank plan.
-        const endCall = () => {
-          if (activeCallId) {
-            const now = Date.now();
-            const callRecord = {
-              id: activeCallId,
-              medium: "call",
-              direction: "outgoing",
-              party: { name: CLIENT.name, kind: "client" },
-              when: "just now",
-              ts: now,
-              duration: "—",
-              outcome: "Connected",
-            };
-            setCalls((cs) => [callRecord, ...cs]);
-            const callNote = {
-              id: "note-" + now,
-              title: "", // call notes are date-only, no title
-              author: "Marcus Bell",
-              createdWhen: "just now",
-              updatedWhen: "just now",
-              updatedTs: now,
-              callId: activeCallId,
-              body: nextCallNote.body || "",
-              versions: [],
-            };
-            setNotes((ns) => [callNote, ...ns]);
-          }
-          setActiveCallId(null);
-          // Clear the working note into a fresh blank plan for the next call.
-          setNextCallNote({ title: "", body: "" });
-          setNextCallOpen(true);
-          setToast("Call archived to Notes · Next-call plan cleared");
-        };
         const closePane = () => setPane(null);
-        const callActive = !!activeCallId;
 
-        // Jump from an activity item to its source. Notes open inline in the
-        // center list; calls/tasks open in the right pane.
+        // Jump from a feed item to its source. Notes open inline in the center
+        // list; calls/tasks open in the right pane.
         const navigateToSource = (source) => {
           if (!source) return;
           if (source.kind === "note") {
@@ -2683,24 +2376,15 @@
           }
         };
 
-        const openCallDetail = (call) => {
-          setTab("comms");
-          setPane({ type: "callDetail", data: call });
-        };
-
-        // Open any communication item: calls -> call detail, texts/emails -> message detail.
-        const openComm = (item) => {
-          if (item.medium === "call") setPane({ type: "callDetail", data: item });
-          else setPane({ type: "messageDetail", data: item });
-        };
+        // Open a call record in the detail pane.
+        const openComm = (item) => setPane({ type: "callDetail", data: item });
 
         // Right-side resolution:
-        //  - during a call, the working note owns the right pane
-        //  - otherwise a transient detail pane (call/task) takes precedence
-        //  - otherwise the persistent Next-call pane shows if open
-        const showDetailPane = !callActive && !!pane;
-        const showNextCall = callActive || (!pane && nextCallOpen);
-        const rightWidth = showNextCall ? 440 : showDetailPane ? 440 : 0;
+        //  - a transient detail pane (call/task) takes precedence
+        //  - otherwise the pinned-note pane shows if a note is pinned & open
+        const showDetailPane = !!pane;
+        const showPinned = !pane && !!pinnedNote && pinnedPaneOpen;
+        const rightWidth = showPinned || showDetailPane ? 440 : 0;
 
         return (
           <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
@@ -2720,20 +2404,14 @@
               <Divider orientation="vertical" flexItem sx={{ borderColor: colors.lightBorder }} />
               <Typography sx={{ fontSize: 13, color: colors.labelText }}>Client Profile</Typography>
               <Box sx={{ flex: 1 }} />
-              <Chip size="small" label="Long-term" sx={{ fontSize: 10, height: 20, backgroundColor: "#F3FAFF", color: colors.primary }} />
+              <Chip size="small" label="MVP" sx={{ fontSize: 10, height: 20, backgroundColor: "#F3FAFF", color: colors.primary }} />
             </Box>
 
             {/* Body: left sidebar | center tabs | right pane */}
             <Box sx={{ flex: 1, display: "flex", minHeight: 0, position: "relative" }}>
               <LeftSidebar
-                onStartCall={startCall}
+                onStartCall={() => setToast("Calling is handled by the dialer app in this prototype")}
                 onStartText={() => setToast("Texting is stubbed in this prototype")}
-                callActive={callActive}
-                nextCallOpen={showNextCall}
-                onToggleNextCall={() => {
-                  if (pane) { setPane(null); setNextCallOpen(true); }
-                  else setNextCallOpen((o) => !o);
-                }}
               />
 
               {/* Center */}
@@ -2776,28 +2454,32 @@
                   {tab === "notes" && (
                     <NotesPanel
                       notes={notes}
-                      callsById={callsById}
                       expandedId={expandedNoteId}
                       autoEditId={autoEditNoteId}
                       onToggleExpand={toggleExpand}
                       onSaveNote={saveNote}
                       onNewNote={newNote}
-                      onOpenCall={openCallDetail}
+                      onTogglePin={togglePin}
                     />
                   )}
                   {tab === "comms" && (
-                    <CommunicationPanel calls={calls} messages={messages} notes={notes} onOpen={openComm} />
+                    <CommunicationPanel
+                      calls={calls}
+                      comms={CLIENT.comms}
+                      onOpen={openComm}
+                      onAction={(label) => setToast(label + " — opens in the dialer/messaging app")}
+                    />
                   )}
                   {tab === "tasks" && <TasksPanel tasks={tasks} onToggle={toggleTask} onOpenTask={(t) => setPane({ type: "taskDetail", data: t })} />}
                   {tab === "documents" && <DocumentsPanel />}
                 </Box>
               </Box>
 
-              {/* Reopen tab for the collapsed Next-call pane */}
-              {!showNextCall && !showDetailPane && !nextCallOpen && (
-                <Tooltip title="Open Next-call note" placement="left">
+              {/* Reopen tab for the collapsed pinned-note pane */}
+              {!showPinned && !showDetailPane && pinnedNote && !pinnedPaneOpen && (
+                <Tooltip title="Open pinned note" placement="left">
                   <Box
-                    onClick={openNextCall}
+                    onClick={() => setPinnedPaneOpen(true)}
                     sx={{
                       position: "absolute",
                       right: 0,
@@ -2817,34 +2499,24 @@
                       "&:hover": { backgroundColor: "#0d4a94" },
                     }}
                   >
-                    <UpcomingIcon sx={{ fontSize: 16, transform: "rotate(90deg)" }} />
-                    <Typography sx={{ fontSize: 12, fontWeight: 600 }}>Next call</Typography>
+                    <PushPinIcon sx={{ fontSize: 16, transform: "rotate(90deg)" }} />
+                    <Typography sx={{ fontSize: 12, fontWeight: 600 }}>Pinned note</Typography>
                   </Box>
                 </Tooltip>
               )}
 
               {/* Right pane */}
-              <RightPane open={showNextCall || showDetailPane} width={rightWidth}>
-                {showNextCall && (
-                  <NextCallPane
-                    note={nextCallNote}
-                    onChange={changeNextCall}
-                    onClose={closeNextCall}
-                    onStartCall={startCall}
-                    onEndCall={endCall}
-                    callActive={callActive}
+              <RightPane open={showPinned || showDetailPane} width={rightWidth}>
+                {showPinned && (
+                  <PinnedNotePane
+                    note={pinnedNote}
+                    onChange={saveNote}
+                    onUnpin={unpin}
+                    onClose={() => setPinnedPaneOpen(false)}
                   />
                 )}
                 {showDetailPane && pane?.type === "callDetail" && (
-                  <CallDetailPane
-                    call={pane.data}
-                    note={noteForCall(pane.data.id)}
-                    onClose={closePane}
-                    onOpenNote={openNoteInline}
-                  />
-                )}
-                {showDetailPane && pane?.type === "messageDetail" && (
-                  <MessageDetailPane message={pane.data} onClose={closePane} />
+                  <CallDetailPane call={pane.data} onClose={closePane} />
                 )}
                 {showDetailPane && pane?.type === "taskDetail" && (
                   <TaskDetailPane
