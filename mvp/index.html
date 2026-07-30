@@ -2139,38 +2139,6 @@
         );
       };
 
-      const TaskDetailPane = ({ task, onClose, onToggle }) => (
-        <>
-          <PaneHeader title="Task" onClose={onClose} />
-          <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1.75 }}>
-            <Typography sx={{ fontSize: 20, fontWeight: 700, color: colors.primaryText }}>{task.title}</Typography>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <StatusChip status={task.status} label={task.statusLabel} />
-              <Button size="small" onClick={() => onToggle(task.id)} sx={{ fontSize: 11 }}>
-                {task.status === "done" ? "Reopen" : "Mark done"}
-              </Button>
-            </Stack>
-            <Divider sx={{ borderColor: colors.lightBorder }} />
-            <Stack direction="row" spacing={4}>
-              <Box>
-                <SectionLabel>Assignee</SectionLabel>
-                <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.5 }}>
-                  <UserAvatar name={task.assignee} colorSeed={task.assignee} sx={{ width: 20, height: 20, fontSize: 8 }} />
-                  <Typography sx={bodyValueSx}>{task.assignee}</Typography>
-                </Stack>
-              </Box>
-              <Box>
-                <SectionLabel>Due</SectionLabel>
-                <Typography sx={{ ...bodyValueSx, mt: 0.5 }}>{task.due}</Typography>
-              </Box>
-            </Stack>
-            <Divider sx={{ borderColor: colors.lightBorder }} />
-            <SectionLabel>Detail</SectionLabel>
-            <Typography sx={{ fontSize: 14, color: colors.primaryText, lineHeight: 1.6 }}>{task.detail}</Typography>
-          </Box>
-        </>
-      );
-
       // ===================================================================
       // APP SHELL
       // ===================================================================
@@ -2201,17 +2169,6 @@
 
         const findNote = (id) => notes.find((n) => n.id === id);
         const findCall = (id) => calls.find((c) => c.id === id);
-
-        const toggleTask = (id) =>
-          setTasks((ts) =>
-            ts.map((t) =>
-              t.id === id
-                ? t.status === "done"
-                  ? { ...t, status: "in_progress", statusLabel: "In progress" }
-                  : { ...t, status: "done", statusLabel: "Done" }
-                : t,
-            ),
-          );
 
         // --- Notes CRUD ---------------------------------------------------
         // Autosave silently on each change (Notion-style) — no toast spam.
@@ -2282,7 +2239,7 @@
           } else if (source.kind === "task") {
             setTab("tasks");
             const task = tasks.find((t) => t.id === source.id);
-            if (task) setPane({ type: "taskDetail", data: task });
+            if (task) openTask(task);
           } else if (source.kind === "document") {
             setTab("documents");
             setToast("Opened " + (findDoc(source.id)?.name || "document"));
@@ -2291,6 +2248,9 @@
 
         // Open a call record in the detail pane.
         const openComm = (item) => setPane({ type: "callDetail", data: item });
+
+        // Tasks open in a separate window in the real app — stubbed here.
+        const openTask = (task) => setToast("Opening task “" + task.title + "” in a new window");
 
         // Right-side resolution:
         //  - a transient detail pane (call/task) takes precedence
@@ -2382,7 +2342,7 @@
                       onAction={(label) => setToast(label + " — opens in the dialer/messaging app")}
                     />
                   )}
-                  {tab === "tasks" && <TasksPanel tasks={tasks} onOpenTask={(t) => setPane({ type: "taskDetail", data: t })} />}
+                  {tab === "tasks" && <TasksPanel tasks={tasks} onOpenTask={openTask} />}
                   {tab === "documents" && <DocumentsPanel />}
                 </Box>
               </Box>
@@ -2429,13 +2389,6 @@
                 )}
                 {showDetailPane && pane?.type === "callDetail" && (
                   <CallDetailPane call={pane.data} onClose={closePane} />
-                )}
-                {showDetailPane && pane?.type === "taskDetail" && (
-                  <TaskDetailPane
-                    task={tasks.find((t) => t.id === pane.data.id) || pane.data}
-                    onClose={closePane}
-                    onToggle={toggleTask}
-                  />
                 )}
               </RightPane>
             </Box>
