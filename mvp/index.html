@@ -187,9 +187,6 @@
       import ChevronRightIcon from "@mui/icons-material/ChevronRight";
       import CallMadeIcon from "@mui/icons-material/CallMade";
       import CallReceivedIcon from "@mui/icons-material/CallReceived";
-      import PersonIcon from "@mui/icons-material/Person";
-      import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
-      import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
       import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
       import SmsOutlinedIcon from "@mui/icons-material/SmsOutlined";
       import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
@@ -199,7 +196,6 @@
       import EmojiEventsOutlinedIcon from "@mui/icons-material/EmojiEventsOutlined";
       import AssignmentTurnedInOutlinedIcon from "@mui/icons-material/AssignmentTurnedInOutlined";
       import TimerOutlinedIcon from "@mui/icons-material/TimerOutlined";
-      import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
       import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
       import WarningAmberIcon from "@mui/icons-material/WarningAmber";
       import HistoryToggleOffIcon from "@mui/icons-material/HistoryToggleOff";
@@ -592,22 +588,14 @@
         ],
       };
 
-      // Calls hold metadata only. The notes taken on a call are first-class
-      // notes (below) linked back via `callId`.
-      //   direction: "outgoing" | "incoming"
-      //   party: who the call was with — { name, kind }
-      //     kind: "client" | "contact" (someone in the client's circle) |
-      //           "third_party" (vendor/service the guide is researching)
-      // Communications share a common shape: medium ("call" | "text" | "email"),
-      // direction ("outgoing" | "incoming"), party {name, kind}, when (display),
-      // ts (sortable epoch ms). Calls carry duration/outcome + a linked note;
-      // texts/emails carry their content inline.
+      // Calls hold metadata only. In the MVP all calls are with the client
+      // (no calling contacts or third parties on the client's behalf).
+      //   direction: "outgoing" | "incoming", when (display), ts (sortable),
+      //   duration, outcome.
       const CALLS = [
         {
           id: "c1",
-          medium: "call",
           direction: "outgoing",
-          party: { name: "Dorothy Whitfield", kind: "client" },
           when: "Feb 12, 2026 · 2:14 PM",
           ts: new Date("2026-02-12T14:14:00").getTime(),
           duration: "12m 04s",
@@ -615,19 +603,15 @@
         },
         {
           id: "c2",
-          medium: "call",
           direction: "outgoing",
-          party: { name: "Bay Area Senior Rides", kind: "third_party" },
           when: "Feb 10, 2026 · 3:20 PM",
           ts: new Date("2026-02-10T15:20:00").getTime(),
           duration: "6m 12s",
-          outcome: "Connected",
+          outcome: "Voicemail",
         },
         {
           id: "c3",
-          medium: "call",
           direction: "incoming",
-          party: { name: "Susan Whitfield", kind: "contact" },
           when: "Feb 9, 2026 · 11:02 AM",
           ts: new Date("2026-02-09T11:02:00").getTime(),
           duration: "8m 47s",
@@ -635,9 +619,7 @@
         },
         {
           id: "c4",
-          medium: "call",
           direction: "incoming",
-          party: { name: "Dorothy Whitfield", kind: "client" },
           when: "Jan 28, 2026 · 9:47 AM",
           ts: new Date("2026-01-28T09:47:00").getTime(),
           duration: "18m 51s",
@@ -904,7 +886,7 @@
           who: "Marcus Bell",
           when: "2 days ago",
           source: { kind: "call", id: "c1" },
-          title: "Outgoing call · Dorothy Whitfield (client)",
+          title: "Outgoing call",
           meta: "Connected · 12m 04s",
         },
         {
@@ -913,8 +895,8 @@
           who: "Marcus Bell",
           when: "4 days ago",
           source: { kind: "call", id: "c2" },
-          title: "Outgoing call · Bay Area Senior Rides (third party)",
-          meta: "Connected · 6m 12s",
+          title: "Outgoing call",
+          meta: "Voicemail · 6m 12s",
         },
         {
           id: "e5",
@@ -944,7 +926,7 @@
           who: "Marcus Bell",
           when: "5 days ago",
           source: { kind: "call", id: "c3" },
-          title: "Incoming call · Susan Whitfield (contact)",
+          title: "Incoming call",
           meta: "Connected · 8m 47s",
         },
         {
@@ -992,7 +974,7 @@
           who: "Marcus Bell",
           when: "3 weeks ago",
           source: { kind: "call", id: "c4" },
-          title: "Incoming call · Dorothy Whitfield (client)",
+          title: "Incoming call",
           meta: "Connected · 18m 51s",
         },
       ];
@@ -1181,7 +1163,7 @@
       // Note: cards whose functions moved to a dedicated tab (Notes, Documents,
       // Communication log, Tasks) are intentionally omitted. During staged
       // rollout the remaining live cards + action buttons are reused here.
-      const OverviewPanel = ({ onAction, onGoTab }) => {
+      const OverviewPanel = ({ onAction }) => {
         const ins = CLIENT.insurance;
         return (
           <PanelWrap>
@@ -1338,24 +1320,6 @@
                   <Button size="small" startIcon={<AddIcon />} onClick={() => onAction("Log time block")} sx={{ fontSize: 11, color: colors.primary, alignSelf: "flex-start" }}>
                     Log time block
                   </Button>
-                </Stack>
-              </CollapsibleCard>
-
-              {/* CLIENT COMMUNICATIONS (settings only — log lives in Communication tab) */}
-              <CollapsibleCard title="Communication settings" icon={SettingsOutlinedIcon} defaultExpanded={false}>
-                <Stack spacing={1.25}>
-                  <KV label="Client-facing number" value={CLIENT.comms.clientFacingNumber} />
-                  <KV label="Forwarding email" value={CLIENT.comms.forwardingEmail} />
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography sx={{ fontSize: 12.5, color: colors.labelText }}>Forward mail to client</Typography>
-                    <YesNo value={CLIENT.comms.forwardToClient} />
-                  </Stack>
-                  <ButtonBase
-                    onClick={() => onGoTab("comms")}
-                    sx={{ alignSelf: "flex-start", fontSize: 12, fontWeight: 500, color: colors.primary, mt: 0.5 }}
-                  >
-                    View communication thread →
-                  </ButtonBase>
                 </Stack>
               </CollapsibleCard>
 
@@ -1850,13 +1814,6 @@
         );
       };
 
-      // How each call party kind is represented.
-      const CALL_PARTY = {
-        client: { label: "Client", Icon: PersonIcon, tint: colors.primary, bg: "#F3FAFF" },
-        contact: { label: "Contact", Icon: GroupOutlinedIcon, tint: "#00897b", bg: "#e6f4f2" },
-        third_party: { label: "Third party", Icon: StorefrontOutlinedIcon, tint: "#ef6c00", bg: "#fff3e0" },
-      };
-
       // Direction badge: outgoing (call made) vs incoming (call received).
       const CallDirection = ({ direction }) => {
         const outgoing = direction === "outgoing";
@@ -1869,28 +1826,6 @@
               {outgoing ? "Outgoing" : "Incoming"}
             </Typography>
           </Stack>
-        );
-      };
-
-      // Party pill: who the call was with + their kind.
-      const PartyPill = ({ party }) => {
-        const meta = CALL_PARTY[party.kind] || CALL_PARTY.client;
-        const { Icon } = meta;
-        return (
-          <Chip
-            size="small"
-            icon={<Icon sx={{ fontSize: "13px !important", color: meta.tint + " !important" }} />}
-            label={party.name}
-            sx={{
-              height: 20,
-              fontSize: 11,
-              fontWeight: 500,
-              color: meta.tint,
-              backgroundColor: meta.bg,
-              "& .MuiChip-icon": { ml: "5px" },
-              "& .MuiChip-label": { px: "6px" },
-            }}
-          />
         );
       };
 
@@ -1975,10 +1910,10 @@
                   direction="row"
                   sx={{ px: 1.5, py: 1, borderBottom: `1px solid ${colors.border}` }}
                 >
-                  <Typography sx={{ ...tableHeaderLike, flex: 2 }}>Date</Typography>
-                  <Typography sx={{ ...tableHeaderLike, flex: 2 }}>Caller</Typography>
-                  <Typography sx={{ ...tableHeaderLike, flex: 1 }}>Duration</Typography>
-                  <Typography sx={{ ...tableHeaderLike, flex: 1.4, textAlign: "right" }}>Direction</Typography>
+                  <Typography sx={{ ...tableHeaderLike, flex: 2.2, pr: 1 }}>Date</Typography>
+                  <Typography sx={{ ...tableHeaderLike, flex: 1.4, pr: 1 }}>Direction</Typography>
+                  <Typography sx={{ ...tableHeaderLike, flex: 1.4, pr: 1 }}>Outcome</Typography>
+                  <Typography sx={{ ...tableHeaderLike, flex: 1, textAlign: "right" }}>Duration</Typography>
                 </Stack>
                 {callLog.map((c) => (
                   <Stack
@@ -1994,14 +1929,12 @@
                       "&:hover": { backgroundColor: colors.cardHoverBg },
                     }}
                   >
-                    <Typography sx={{ flex: 2, fontSize: 13, color: colors.primaryText }}>{c.when}</Typography>
-                    <Box sx={{ flex: 2, minWidth: 0, pr: 1 }}>
-                      <PartyPill party={c.party} />
-                    </Box>
-                    <Typography sx={{ flex: 1, fontSize: 13, color: colors.secondaryText }}>{c.duration}</Typography>
-                    <Box sx={{ flex: 1.4, display: "flex", justifyContent: "flex-end" }}>
+                    <Typography sx={{ flex: 2.2, fontSize: 13, color: colors.primaryText, pr: 1 }}>{c.when}</Typography>
+                    <Box sx={{ flex: 1.4, pr: 1 }}>
                       <CallDirection direction={c.direction} />
                     </Box>
+                    <Typography sx={{ flex: 1.4, fontSize: 13, color: colors.secondaryText, pr: 1 }}>{c.outcome}</Typography>
+                    <Typography sx={{ flex: 1, fontSize: 13, color: colors.secondaryText, textAlign: "right" }}>{c.duration}</Typography>
                   </Stack>
                 ))}
               </Box>
@@ -2202,21 +2135,18 @@
       };
 
       const CallDetailPane = ({ call, onClose }) => {
-        const partyMeta = CALL_PARTY[call.party.kind] || CALL_PARTY.client;
         return (
           <>
             <PaneHeader title="Call detail" onClose={onClose} />
             <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1.5, overflowY: "auto" }}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <CallDirection direction={call.direction} />
-                <Typography sx={{ fontSize: 12, color: colors.mutedText }}>·</Typography>
-                <Typography sx={{ fontSize: 12, color: colors.labelText }}>{partyMeta.label}</Typography>
-              </Stack>
               <Stack direction="row" spacing={1.25} alignItems="center">
-                <Box sx={{ width: 36, height: 36, borderRadius: "50%", backgroundColor: partyMeta.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <partyMeta.Icon sx={{ fontSize: 20, color: partyMeta.tint }} />
+                <Box sx={{ width: 36, height: 36, borderRadius: "50%", backgroundColor: "#eef7ef", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <PhoneInTalkIcon sx={{ fontSize: 20, color: colors.green }} />
                 </Box>
-                <Typography sx={{ fontSize: 17, fontWeight: 700, color: colors.primaryText }}>{call.party.name}</Typography>
+                <Box>
+                  <Typography sx={{ fontSize: 17, fontWeight: 700, color: colors.primaryText, lineHeight: 1.2 }}>{CLIENT.name}</Typography>
+                  <CallDirection direction={call.direction} />
+                </Box>
               </Stack>
               <InfoRow label="When" value={call.when} />
               <InfoRow label="Duration" value={call.duration} />
@@ -2447,7 +2377,6 @@
                   {tab === "overview" && (
                     <OverviewPanel
                       onAction={(label) => setToast(label + " — stubbed in this prototype")}
-                      onGoTab={(t) => setTab(t)}
                     />
                   )}
                   {tab === "activity" && <FeedPanel onNavigate={navigateToSource} />}
