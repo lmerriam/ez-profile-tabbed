@@ -137,12 +137,9 @@
         Chip,
         TextField,
         Tooltip,
-        Menu,
-        MenuItem,
         Card,
         CardContent,
         Collapse,
-        InputAdornment,
         Badge,
         LinearProgress,
         Snackbar,
@@ -155,7 +152,6 @@
       import MoreVertIcon from "@mui/icons-material/MoreVert";
       import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
       import EastIcon from "@mui/icons-material/East";
-      import SearchIcon from "@mui/icons-material/Search";
       import AddIcon from "@mui/icons-material/Add";
       import CloseIcon from "@mui/icons-material/Close";
       import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
@@ -177,7 +173,6 @@
       import PlaylistAddCheckIcon from "@mui/icons-material/PlaylistAddCheck";
       import TaskAltIcon from "@mui/icons-material/TaskAlt";
       import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
-      import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
       import PushPinIcon from "@mui/icons-material/PushPin";
       import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
       import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
@@ -625,15 +620,17 @@
         },
       ];
 
-      // Single flat, editable notes collection. Notes are not linked to call
-      // records (unlike the long-term vision). Any note can be `pinned` to keep
-      // it open in the side panel while browsing the rest of the profile.
+      // Editable notes collection. Notes are not linked to call records.
+      // `category` is "chronological" or "research" (mirrors the current app).
+      // Any note can be `pinned` to keep it open in the side panel.
       const NOTES = [
-        // --- Evolving topic notes ----------------------------------------
+        // --- Research findings --------------------------------------------
         {
           id: "topic-transport",
           title: "Transportation options",
+          category: "research",
           author: "Marcus Bell",
+          date: "Feb 16, 2026",
           createdWhen: "6 weeks ago",
           updatedWhen: "2 days ago",
           updatedTs: Date.now() - 2 * 24 * 60 * 60 * 1000,
@@ -663,7 +660,9 @@
         {
           id: "topic-facilities",
           title: "Care facilities",
+          category: "research",
           author: "Marcus Bell",
+          date: "Feb 11, 2026",
           createdWhen: "5 weeks ago",
           updatedWhen: "1 week ago",
           updatedTs: Date.now() - 7 * 24 * 60 * 60 * 1000,
@@ -686,7 +685,9 @@
         {
           id: "topic-mobility",
           title: "Mobility aids",
+          category: "research",
           author: "Marcus Bell",
+          date: "Feb 14, 2026",
           createdWhen: "4 weeks ago",
           updatedWhen: "4 days ago",
           updatedTs: Date.now() - 4 * 24 * 60 * 60 * 1000,
@@ -715,7 +716,9 @@
         {
           id: "topic-mri",
           title: "Knee MRI claim — denial & appeal tracker",
+          category: "research",
           author: "Priya Nair",
+          date: "Feb 8, 2026",
           createdWhen: "3 weeks ago",
           updatedWhen: "10 days ago",
           updatedTs: Date.now() - 10 * 24 * 60 * 60 * 1000,
@@ -750,7 +753,9 @@
         {
           id: "topic-dental",
           title: "Dental benefits",
+          category: "research",
           author: "Priya Nair",
+          date: "Jan 30, 2026",
           createdWhen: "3 weeks ago",
           updatedWhen: "3 weeks ago",
           updatedTs: Date.now() - 21 * 24 * 60 * 60 * 1000,
@@ -759,12 +764,13 @@
             "Humana Gold Plus includes $2,000/yr dental allowance. Cleanings 100% covered 2x/yr. Major services 50% after $0 deductible. Shared summary with Dot.\n\nIN-NETWORK DENTISTS NEAR OAKLAND\n• Lakeshore Dental — accepting new patients, 1.2mi.\n• Grand Ave Family Dental — 0.8mi, good reviews.",
           versions: [],
         },
-        // --- Chronological / call-recap notes (standalone, not linked to
-        //     a call record) ------------------------------------------------
+        // --- Chronological notes ------------------------------------------
         {
           id: "cn1",
           title: "Call recap — knee MRI claim",
+          category: "chronological",
           author: "Marcus Bell",
+          date: "Feb 12, 2026",
           createdWhen: "2 days ago",
           updatedWhen: "2 days ago",
           updatedTs: Date.now() - 2 * 24 * 60 * 60 * 1000,
@@ -776,7 +782,9 @@
         {
           id: "cn2",
           title: "Call recap — Bay Area Senior Rides",
+          category: "chronological",
           author: "Marcus Bell",
+          date: "Feb 10, 2026",
           createdWhen: "4 days ago",
           updatedWhen: "4 days ago",
           updatedTs: Date.now() - 4 * 24 * 60 * 60 * 1000,
@@ -788,7 +796,9 @@
         {
           id: "cn3",
           title: "Call recap — Susan (daughter) re: stairs",
+          category: "chronological",
           author: "Marcus Bell",
+          date: "Feb 9, 2026",
           createdWhen: "5 days ago",
           updatedWhen: "5 days ago",
           updatedTs: Date.now() - 5 * 24 * 60 * 60 * 1000,
@@ -800,7 +810,9 @@
         {
           id: "cn4",
           title: "Call recap — dental benefits",
+          category: "chronological",
           author: "Marcus Bell",
+          date: "Jan 28, 2026",
           createdWhen: "3 weeks ago",
           updatedWhen: "3 weeks ago",
           updatedTs: Date.now() - 20 * 24 * 60 * 60 * 1000,
@@ -1611,37 +1623,20 @@
                 display: "flex",
                 alignItems: "flex-start",
                 gap: 1,
-                p: 1.5,
+                px: 2,
+                py: 1.75,
                 cursor: "pointer",
                 "&:hover": { backgroundColor: expanded ? "transparent" : colors.cardHoverBg },
               }}
             >
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText }}>
+                {/* Collapsed card mirrors the current app: date over title. */}
+                <Typography sx={{ fontSize: 15, color: colors.labelText }}>
+                  {note.date}
+                </Typography>
+                <Typography sx={{ fontSize: 17, color: colors.primaryText, mt: 0.25 }}>
                   {note.title || "Untitled note"}
                 </Typography>
-                {/* Author is hidden until expanded (usually the dedicated guide). */}
-                {!expanded && (
-                  <Typography
-                    sx={{
-                      fontSize: 13,
-                      color: colors.secondaryText,
-                      mt: 0.25,
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                      whiteSpace: "pre-wrap",
-                    }}
-                  >
-                    {note.body}
-                  </Typography>
-                )}
-                {!expanded && (
-                  <Typography sx={{ fontSize: 11.5, color: colors.timestampText, mt: 0.5 }}>
-                    Updated {note.updatedWhen}
-                  </Typography>
-                )}
               </Box>
               {/* Pin toggle — keep this note open in the side panel */}
               <Tooltip title={note.pinned ? "Unpin" : "Pin to keep open"}>
@@ -1657,7 +1652,7 @@
 
             {/* expanded: editable Notion-style document */}
             <Collapse in={expanded} timeout="auto" unmountOnExit>
-              <Box sx={{ px: 1.5, pb: 1.5, pt: 0 }}>
+              <Box sx={{ px: 2, pb: 2, pt: 0 }}>
                 <Divider sx={{ borderColor: colors.lightBorder, mb: 0.5 }} />
                 {/* Author shown on expand (usually the dedicated guide). */}
                 <Stack direction="row" spacing={0.75} alignItems="center" sx={{ my: 1 }}>
@@ -1729,12 +1724,6 @@
         );
       };
 
-      const SORTS = {
-        updated: { label: "Recently updated", fn: (a, b) => b.updatedTs - a.updatedTs },
-        oldest: { label: "Oldest first", fn: (a, b) => a.updatedTs - b.updatedTs },
-        title: { label: "Title (A–Z)", fn: (a, b) => (a.title || "").localeCompare(b.title || "") },
-      };
-
       const NotesPanel = ({
         notes,
         expandedId,
@@ -1745,68 +1734,98 @@
         autoEditId,
       }) => {
         const [q, setQ] = useState("");
-        const [sortKey, setSortKey] = useState("updated"); // default: recently updated
-        const [sortAnchor, setSortAnchor] = useState(null);
+        const [query, setQuery] = useState(""); // applied on SEARCH / Enter
 
-        const visible = useMemo(() => {
-          const arr = notes.filter((n) => (n.title + n.body).toLowerCase().includes(q.toLowerCase()));
-          return [...arr].sort(SORTS[sortKey].fn);
-        }, [notes, q, sortKey]);
+        const matches = useMemo(() => {
+          if (!query) return notes;
+          const needle = query.toLowerCase();
+          return notes.filter((n) => (n.title + n.body).toLowerCase().includes(needle));
+        }, [notes, query]);
+
+        // Two categories, mirroring the current app. Newest first within each.
+        const byCat = (cat) =>
+          matches.filter((n) => n.category === cat).sort((a, b) => b.updatedTs - a.updatedTs);
+
+        const renderNote = (n) => (
+          <NoteCard
+            key={n.id}
+            note={n}
+            expanded={expandedId === n.id}
+            autoFocus={autoEditId === n.id}
+            onToggle={onToggleExpand}
+            onSave={onSaveNote}
+            onTogglePin={onTogglePin}
+          />
+        );
+
+        const Section = ({ label, cat, emptyText }) => {
+          const items = byCat(cat);
+          return (
+            <Box sx={{ mb: 4 }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+                <SectionLabel>{label}</SectionLabel>
+                <ButtonBase
+                  onClick={() => onNewNote(cat)}
+                  sx={{ fontSize: 13, fontWeight: 600, color: colors.primary, letterSpacing: 0.3 }}
+                >
+                  + ADD NOTE
+                </ButtonBase>
+              </Stack>
+              {items.length > 0 ? (
+                <Stack spacing={1.5}>{items.map(renderNote)}</Stack>
+              ) : (
+                <Box
+                  sx={{
+                    backgroundColor: colors.emptyCardBg,
+                    borderRadius: "4px",
+                    py: 4,
+                    textAlign: "center",
+                    color: colors.labelText,
+                    fontSize: 15,
+                  }}
+                >
+                  {emptyText}
+                </Box>
+              )}
+            </Box>
+          );
+        };
 
         return (
           <PanelWrap>
             <Box sx={{ maxWidth: 720 }}>
-              {/* toolbar */}
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+              {/* search bar with a SEARCH button (matches current app) */}
+              <Stack
+                direction="row"
+                alignItems="center"
+                sx={{
+                  mb: 4,
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: "6px",
+                  pl: 2,
+                  pr: 1,
+                }}
+              >
                 <TextField
-                  size="small"
-                  placeholder="Search notes"
+                  variant="standard"
+                  placeholder="Search notes..."
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  sx={{ flex: 1 }}
-                  InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon sx={{ color: colors.mutedText, fontSize: 18 }} /></InputAdornment>) }}
+                  onKeyDown={(e) => { if (e.key === "Enter") setQuery(q); }}
+                  fullWidth
+                  InputProps={{ disableUnderline: true }}
+                  sx={{ "& .MuiInputBase-input": { fontSize: 16, py: 1.5, color: colors.primaryText } }}
                 />
                 <Button
-                  size="small"
-                  variant="outlined"
-                  endIcon={<UnfoldMoreIcon />}
-                  onClick={(e) => setSortAnchor(e.currentTarget)}
-                  sx={{ fontSize: 12, whiteSpace: "nowrap", color: colors.secondaryText, borderColor: colors.border }}
+                  onClick={() => setQuery(q)}
+                  sx={{ fontSize: 13, fontWeight: 600, color: colors.primary, letterSpacing: 0.5 }}
                 >
-                  {SORTS[sortKey].label}
-                </Button>
-                <Menu anchorEl={sortAnchor} open={!!sortAnchor} onClose={() => setSortAnchor(null)}>
-                  {Object.entries(SORTS).map(([key, s]) => (
-                    <MenuItem
-                      key={key}
-                      selected={key === sortKey}
-                      onClick={() => { setSortKey(key); setSortAnchor(null); }}
-                      sx={{ fontSize: 13 }}
-                    >
-                      {s.label}
-                    </MenuItem>
-                  ))}
-                </Menu>
-                <Button size="small" variant="contained" startIcon={<AddIcon />} onClick={onNewNote} sx={{ fontSize: 12, whiteSpace: "nowrap" }}>
-                  New note
+                  SEARCH
                 </Button>
               </Stack>
 
-              {/* list */}
-              <Stack spacing={1.25}>
-                {visible.map((n) => (
-                  <NoteCard
-                    key={n.id}
-                    note={n}
-                    expanded={expandedId === n.id}
-                    autoFocus={autoEditId === n.id}
-                    onToggle={onToggleExpand}
-                    onSave={onSaveNote}
-                    onTogglePin={onTogglePin}
-                  />
-                ))}
-                {visible.length === 0 && <PreviewCardEmpty text="No notes match your search." />}
-              </Stack>
+              <Section label="Chronological" cat="chronological" emptyText="No chronological notes yet" />
+              <Section label="Research findings" cat="research" emptyText="No research findings yet" />
             </Box>
           </PanelWrap>
         );
@@ -2181,12 +2200,15 @@
             ),
           );
         };
-        const newNote = () => {
+        const newNote = (category = "chronological") => {
           const id = "note-" + Date.now();
+          const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
           const note = {
             id,
             title: "Untitled note",
+            category: category === "research" ? "research" : "chronological",
             author: "Marcus Bell",
+            date: today,
             createdWhen: "just now",
             updatedWhen: "just now",
             updatedTs: Date.now(),
