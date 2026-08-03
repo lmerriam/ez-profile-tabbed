@@ -175,9 +175,9 @@
       import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
       import PushPinIcon from "@mui/icons-material/PushPin";
       import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
+      import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
       import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
       import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-      import ChevronRightIcon from "@mui/icons-material/ChevronRight";
       import CallMadeIcon from "@mui/icons-material/CallMade";
       import CallReceivedIcon from "@mui/icons-material/CallReceived";
       import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
@@ -1585,7 +1585,7 @@
       // An inline, expandable + editable note card. Guides can expand a note
       // and edit it in place — e.g. update a research note while the call
       // panel is open on the right and they're taking call notes.
-      const NoteCard = ({ note, expanded, onToggle, onSave, onTogglePin, autoFocus }) => {
+      const NoteCard = ({ note, expanded, onToggle, onSave, onTogglePin, onDelete, autoFocus }) => {
         // Notion-style: expanding a note drops straight into an editable
         // document. Title + body live on one continuous surface and edits
         // save on change — no separate edit mode or Save/Cancel buttons.
@@ -1606,6 +1606,47 @@
 
         const commitTitle = (v) => { setTitle(v); onSave(note.id, { title: v }); };
         const commitBody = (v) => { setBody(v); onSave(note.id, { body: v }); };
+
+        // A pinned note is edited only in the side panel — its list card shows a
+        // distinct, non-editable "pinned" state (no expand, no double editing).
+        if (note.pinned) {
+          return (
+            <Box
+              sx={{
+                border: `1px solid ${colors.primary}`,
+                borderRadius: "3px",
+                overflow: "hidden",
+                backgroundColor: colors.selectedBg,
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 1,
+                px: 1.5,
+                py: 1.5,
+              }}
+            >
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Stack direction="row" alignItems="center" spacing={0.75}>
+                  <PushPinIcon sx={{ fontSize: 13, color: colors.primary }} />
+                  <Typography sx={{ fontSize: 11, fontWeight: 600, color: colors.primary, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    Pinned · editing in side panel
+                  </Typography>
+                </Stack>
+                <Typography sx={{ fontSize: 14, color: colors.primaryText, mt: 0.5 }}>
+                  {note.title || "Untitled note"}
+                </Typography>
+              </Box>
+              <Tooltip title="Unpin">
+                <IconButton
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); onTogglePin(note.id); }}
+                  sx={{ flexShrink: 0, color: colors.primary }}
+                >
+                  <PushPinIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          );
+        }
 
         return (
           <Box
@@ -1639,13 +1680,13 @@
                 </Typography>
               </Box>
               {/* Pin toggle — keep this note open in the side panel */}
-              <Tooltip title={note.pinned ? "Unpin" : "Pin to keep open"}>
+              <Tooltip title="Pin to keep open">
                 <IconButton
                   size="small"
                   onClick={(e) => { e.stopPropagation(); onTogglePin(note.id); }}
-                  sx={{ flexShrink: 0, color: note.pinned ? colors.primary : colors.mutedText }}
+                  sx={{ flexShrink: 0, color: colors.mutedText }}
                 >
-                  {note.pinned ? <PushPinIcon sx={{ fontSize: 16 }} /> : <PushPinOutlinedIcon sx={{ fontSize: 16 }} />}
+                  <PushPinOutlinedIcon sx={{ fontSize: 16 }} />
                 </IconButton>
               </Tooltip>
             </Box>
@@ -1702,15 +1743,23 @@
                   />
                 </Box>
 
-                {/* subtle footer: pin action + created/edit metadata */}
+                {/* footer: pin + delete actions + created/edit metadata */}
                 <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 1.5 }}>
                   <ButtonBase
                     onClick={(e) => { e.stopPropagation(); onTogglePin(note.id); }}
                     sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, fontSize: 12, fontWeight: 500, color: colors.primary }}
                   >
-                    {note.pinned ? <PushPinIcon sx={{ fontSize: 14 }} /> : <PushPinOutlinedIcon sx={{ fontSize: 14 }} />}
-                    {note.pinned ? "Pinned — keeping open" : "Pin to keep open"}
+                    <PushPinOutlinedIcon sx={{ fontSize: 14 }} />
+                    Pin to keep open
                   </ButtonBase>
+                  <ButtonBase
+                    onClick={(e) => { e.stopPropagation(); onDelete(note.id); }}
+                    sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, fontSize: 12, fontWeight: 500, color: colors.red }}
+                  >
+                    <DeleteOutlineIcon sx={{ fontSize: 14 }} />
+                    Delete
+                  </ButtonBase>
+                  <Box sx={{ flex: 1 }} />
                   <Typography sx={{ fontSize: 11.5, color: colors.timestampText }}>
                     Created {note.createdWhen}
                     {note.versions && note.versions.length > 0
@@ -1726,11 +1775,12 @@
 
       const NotesPanel = ({
         notes,
-        expandedId,
+        expandedIds,
         onToggleExpand,
         onSaveNote,
         onNewNote,
         onTogglePin,
+        onDeleteNote,
         autoEditId,
       }) => {
         const [q, setQ] = useState("");
@@ -1750,11 +1800,12 @@
           <NoteCard
             key={n.id}
             note={n}
-            expanded={expandedId === n.id}
+            expanded={expandedIds.includes(n.id)}
             autoFocus={autoEditId === n.id}
             onToggle={onToggleExpand}
             onSave={onSaveNote}
             onTogglePin={onTogglePin}
+            onDelete={onDeleteNote}
           />
         );
 
@@ -2069,7 +2120,7 @@
       // Pinned-note side panel. Any note can be pinned to keep it open on the
       // right while browsing the rest of the profile. Editable in place — the
       // same title + body document surface as the note card.
-      const PinnedNotePane = ({ note, onChange, onUnpin, onClose }) => {
+      const PinnedNotePane = ({ note, onChange, onUnpin, onDelete }) => {
         return (
           <>
             {/* header */}
@@ -2084,11 +2135,11 @@
                 <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText }}>Pinned note</Typography>
               </Stack>
               <Stack direction="row" alignItems="center" spacing={0.5}>
+                <Tooltip title="Delete note">
+                  <IconButton size="small" onClick={() => onDelete(note.id)}><DeleteOutlineIcon fontSize="small" sx={{ color: colors.red }} /></IconButton>
+                </Tooltip>
                 <Tooltip title="Unpin">
                   <IconButton size="small" onClick={onUnpin}><PushPinIcon fontSize="small" sx={{ color: colors.primary }} /></IconButton>
-                </Tooltip>
-                <Tooltip title="Collapse panel">
-                  <IconButton size="small" onClick={onClose}><ChevronRightIcon fontSize="small" /></IconButton>
                 </Tooltip>
               </Stack>
             </Stack>
@@ -2178,11 +2229,10 @@
         // right pane: { type: 'callDetail' | 'taskDetail', data }
         const [pane, setPane] = useState(null);
         const [toast, setToast] = useState("");
-        // Inline expand/edit state for the notes list.
-        const [expandedNoteId, setExpandedNoteId] = useState(null);
+        // Inline expand/edit state for the notes list. Multiple notes may be
+        // expanded at once — expanding one never collapses others.
+        const [expandedNoteIds, setExpandedNoteIds] = useState([]);
         const [autoEditNoteId, setAutoEditNoteId] = useState(null);
-        // Whether the pinned-note side panel is expanded (vs. collapsed to a tab).
-        const [pinnedPaneOpen, setPinnedPaneOpen] = useState(true);
 
         const pinnedNote = notes.find((n) => n.pinned) || null;
 
@@ -2218,31 +2268,39 @@
           };
           setNotes((ns) => [note, ...ns]);
           setTab("notes");
-          setExpandedNoteId(id);
+          setExpandedNoteIds((cur) => (cur.includes(id) ? cur : [...cur, id]));
           setAutoEditNoteId(id);
         };
+        // Expanding a note leaves any other expanded notes open.
         const toggleExpand = (id) => {
-          setExpandedNoteId((cur) => (cur === id ? null : id));
+          setExpandedNoteIds((cur) =>
+            cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id],
+          );
           setAutoEditNoteId(null);
         };
         // Open a note inline in the center list (from the feed).
         const openNoteInline = (note) => {
           setTab("notes");
-          setExpandedNoteId(note.id);
+          setExpandedNoteIds((cur) => (cur.includes(note.id) ? cur : [...cur, note.id]));
           setAutoEditNoteId(null);
+        };
+        const deleteNote = (id) => {
+          setNotes((ns) => ns.filter((n) => n.id !== id));
+          setExpandedNoteIds((cur) => cur.filter((x) => x !== id));
+          setToast("Note deleted");
         };
 
         // --- Pinning ------------------------------------------------------
         // Only one note is pinned at a time (keeps the side panel simple).
-        // Pinning opens the panel; unpinning clears it.
+        // A pinned note is edited only in the side panel, so collapse its
+        // inline card (remove it from the expanded set).
         const togglePin = (id) => {
           setNotes((ns) =>
             ns.map((n) =>
               n.id === id ? { ...n, pinned: !n.pinned } : { ...n, pinned: false },
             ),
           );
-          const willPin = !(notes.find((n) => n.id === id)?.pinned);
-          if (willPin) setPinnedPaneOpen(true);
+          setExpandedNoteIds((cur) => cur.filter((x) => x !== id));
         };
         const unpin = () => setNotes((ns) => ns.map((n) => ({ ...n, pinned: false })));
 
@@ -2276,9 +2334,9 @@
 
         // Right-side resolution:
         //  - a transient detail pane (call/task) takes precedence
-        //  - otherwise the pinned-note pane shows if a note is pinned & open
+        //  - otherwise the pinned-note pane shows whenever a note is pinned
         const showDetailPane = !!pane;
-        const showPinned = !pane && !!pinnedNote && pinnedPaneOpen;
+        const showPinned = !pane && !!pinnedNote;
         const rightWidth = showPinned || showDetailPane ? 440 : 0;
 
         return (
@@ -2348,12 +2406,13 @@
                   {tab === "notes" && (
                     <NotesPanel
                       notes={notes}
-                      expandedId={expandedNoteId}
+                      expandedIds={expandedNoteIds}
                       autoEditId={autoEditNoteId}
                       onToggleExpand={toggleExpand}
                       onSaveNote={saveNote}
                       onNewNote={newNote}
                       onTogglePin={togglePin}
+                      onDeleteNote={deleteNote}
                     />
                   )}
                   {tab === "comms" && (
@@ -2369,36 +2428,6 @@
                 </Box>
               </Box>
 
-              {/* Reopen tab for the collapsed pinned-note pane */}
-              {!showPinned && !showDetailPane && pinnedNote && !pinnedPaneOpen && (
-                <Tooltip title="Open pinned note" placement="left">
-                  <Box
-                    onClick={() => setPinnedPaneOpen(true)}
-                    sx={{
-                      position: "absolute",
-                      right: 0,
-                      top: 120,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 0.5,
-                      px: 1,
-                      py: 1.25,
-                      borderTopLeftRadius: 6,
-                      borderBottomLeftRadius: 6,
-                      backgroundColor: colors.primary,
-                      color: "#fff",
-                      cursor: "pointer",
-                      boxShadow: "0px 2px 8px #0000002A",
-                      writingMode: "vertical-rl",
-                      "&:hover": { backgroundColor: "#0d4a94" },
-                    }}
-                  >
-                    <PushPinIcon sx={{ fontSize: 16, transform: "rotate(90deg)" }} />
-                    <Typography sx={{ fontSize: 12, fontWeight: 600 }}>Pinned note</Typography>
-                  </Box>
-                </Tooltip>
-              )}
-
               {/* Right pane */}
               <RightPane open={showPinned || showDetailPane} width={rightWidth}>
                 {showPinned && (
@@ -2406,7 +2435,7 @@
                     note={pinnedNote}
                     onChange={saveNote}
                     onUnpin={unpin}
-                    onClose={() => setPinnedPaneOpen(false)}
+                    onDelete={deleteNote}
                   />
                 )}
                 {showDetailPane && pane?.type === "callDetail" && (
