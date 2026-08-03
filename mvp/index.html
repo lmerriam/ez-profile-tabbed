@@ -472,6 +472,8 @@
         ],
         email: "dorothy.whitfield@gmail.com",
         address: "1420 Elm Street, Apt 3B, Oakland, CA 94612",
+        county: "Alameda",
+        ssn: "•••–••–4821",
         language: "English",
         timezone: "Pacific (PT)",
         status: "Active",
@@ -999,6 +1001,17 @@
         </Box>
       );
 
+      // Inline label/value row for the left sidebar (same idea as the overview
+      // cards' KV rows). Label is fixed-width; value wraps beside it.
+      const SidebarRow = ({ label, value }) => (
+        <Stack direction="row" spacing={1} alignItems="baseline">
+          <Typography sx={{ ...sectionLabelSx, flex: "0 0 84px" }}>{label}</Typography>
+          <Typography sx={{ fontSize: 13, color: colors.primaryText, flex: 1, minWidth: 0 }}>
+            {value}
+          </Typography>
+        </Stack>
+      );
+
       const LeftSidebar = ({ onStartCall, onStartText }) => (
         <Box
           sx={{
@@ -1023,21 +1036,6 @@
                 <Typography sx={{ fontSize: 16, fontWeight: 700, color: colors.primaryText, lineHeight: 1.2 }}>
                   {CLIENT.name}
                 </Typography>
-                <Typography sx={{ ...mutedTextSx, mt: 0.25 }}>
-                  “{CLIENT.preferredName}” · {CLIENT.age} · {CLIENT.pronouns}
-                </Typography>
-                <Chip
-                  size="small"
-                  label={CLIENT.status}
-                  sx={{
-                    mt: 0.75,
-                    height: 20,
-                    fontSize: 10,
-                    fontWeight: 600,
-                    backgroundColor: "#C8E6C9",
-                    color: "#2e7d32",
-                  }}
-                />
               </Box>
             </Stack>
 
@@ -1073,15 +1071,16 @@
             </Stack>
           </Box>
 
-          {/* Basic info */}
-          <Box sx={{ p: 2.5, display: "flex", flexDirection: "column", gap: 2 }}>
-            <SectionLabel sx={{ fontSize: 11 }}>Contact</SectionLabel>
+          {/* Basic info — inline label/value rows (like the overview cards) */}
+          <Box sx={{ p: 2.5, display: "flex", flexDirection: "column", gap: 1.25 }}>
             {CLIENT.phones.map((p) => (
-              <InfoRow key={p.number} label={p.label} value={p.number} />
+              <SidebarRow key={p.number} label={p.label} value={p.number} />
             ))}
-            <InfoRow label="Email" value={CLIENT.email} />
-            <InfoRow label="Address" value={CLIENT.address} />
-            <InfoRow label="Time zone" value={CLIENT.timezone} />
+            <SidebarRow label="Email" value={CLIENT.email} />
+            <SidebarRow label="Birth date" value={CLIENT.dob} />
+            <SidebarRow label="SSN" value={CLIENT.ssn} />
+            <SidebarRow label="Address" value={`${CLIENT.address} · ${CLIENT.county} County`} />
+            <SidebarRow label="Time zone" value={CLIENT.timezone} />
           </Box>
 
           <Divider sx={{ borderColor: colors.lightBorder }} />
@@ -1115,27 +1114,6 @@
             </Box>
           </Box>
 
-          <Divider sx={{ borderColor: colors.lightBorder }} />
-
-          {/* Featured card: Care team */}
-          <Box sx={{ p: 2.5, display: "flex", flexDirection: "column", gap: 1.5 }}>
-            <SectionLabel>Care team</SectionLabel>
-            <Stack spacing={1.25}>
-              {CLIENT.careTeam.map((m) => (
-                <Stack key={m.name} direction="row" spacing={1.25} alignItems="center">
-                  <UserAvatar name={m.name} colorSeed={m.name} sx={{ width: 28, height: 28, fontSize: 11 }} />
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: colors.primaryText, lineHeight: 1.2 }}>
-                      {m.name}
-                    </Typography>
-                    <Typography sx={{ fontSize: 11, color: colors.labelText }}>
-                      {m.role} · {m.detail}
-                    </Typography>
-                  </Box>
-                </Stack>
-              ))}
-            </Stack>
-          </Box>
         </Box>
       );
 
