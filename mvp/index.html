@@ -1623,18 +1623,18 @@
                 display: "flex",
                 alignItems: "flex-start",
                 gap: 1,
-                px: 2,
-                py: 1.75,
+                px: 1.5,
+                py: 1.5,
                 cursor: "pointer",
                 "&:hover": { backgroundColor: expanded ? "transparent" : colors.cardHoverBg },
               }}
             >
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 {/* Collapsed card mirrors the current app: date over title. */}
-                <Typography sx={{ fontSize: 15, color: colors.labelText }}>
+                <Typography sx={{ fontSize: 12, color: colors.timestampText }}>
                   {note.date}
                 </Typography>
-                <Typography sx={{ fontSize: 17, color: colors.primaryText, mt: 0.25 }}>
+                <Typography sx={{ fontSize: 14, color: colors.primaryText, mt: 0.25 }}>
                   {note.title || "Untitled note"}
                 </Typography>
               </Box>
@@ -1645,14 +1645,14 @@
                   onClick={(e) => { e.stopPropagation(); onTogglePin(note.id); }}
                   sx={{ flexShrink: 0, color: note.pinned ? colors.primary : colors.mutedText }}
                 >
-                  {note.pinned ? <PushPinIcon sx={{ fontSize: 18 }} /> : <PushPinOutlinedIcon sx={{ fontSize: 18 }} />}
+                  {note.pinned ? <PushPinIcon sx={{ fontSize: 16 }} /> : <PushPinOutlinedIcon sx={{ fontSize: 16 }} />}
                 </IconButton>
               </Tooltip>
             </Box>
 
             {/* expanded: editable Notion-style document */}
             <Collapse in={expanded} timeout="auto" unmountOnExit>
-              <Box sx={{ px: 2, pb: 2, pt: 0 }}>
+              <Box sx={{ px: 1.5, pb: 1.5, pt: 0 }}>
                 <Divider sx={{ borderColor: colors.lightBorder, mb: 0.5 }} />
                 {/* Author shown on expand (usually the dedicated guide). */}
                 <Stack direction="row" spacing={0.75} alignItems="center" sx={{ my: 1 }}>
@@ -1672,7 +1672,7 @@
                     InputProps={{ disableUnderline: true }}
                     sx={{
                       "& .MuiInputBase-input": {
-                        fontSize: 20,
+                        fontSize: 15,
                         fontWeight: 700,
                         color: colors.primaryText,
                         padding: "2px 0 2px",
@@ -1692,7 +1692,7 @@
                     InputProps={{ disableUnderline: true }}
                     sx={{
                       "& .MuiInputBase-input": {
-                        fontSize: 14,
+                        fontSize: 13.5,
                         color: colors.primaryText,
                         lineHeight: 1.6,
                         padding: 0,
@@ -1761,27 +1761,27 @@
         const Section = ({ label, cat, emptyText }) => {
           const items = byCat(cat);
           return (
-            <Box sx={{ mb: 4 }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+            <Box sx={{ mb: 3 }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.25 }}>
                 <SectionLabel>{label}</SectionLabel>
                 <ButtonBase
                   onClick={() => onNewNote(cat)}
-                  sx={{ fontSize: 13, fontWeight: 600, color: colors.primary, letterSpacing: 0.3 }}
+                  sx={{ fontSize: 11, fontWeight: 600, color: colors.primary, letterSpacing: 0.5, textTransform: "uppercase" }}
                 >
-                  + ADD NOTE
+                  + Add note
                 </ButtonBase>
               </Stack>
               {items.length > 0 ? (
-                <Stack spacing={1.5}>{items.map(renderNote)}</Stack>
+                <Stack spacing={1.25}>{items.map(renderNote)}</Stack>
               ) : (
                 <Box
                   sx={{
                     backgroundColor: colors.emptyCardBg,
-                    borderRadius: "4px",
-                    py: 4,
+                    borderRadius: "3px",
+                    py: 2.5,
                     textAlign: "center",
                     color: colors.labelText,
-                    fontSize: 15,
+                    fontSize: 13,
                   }}
                 >
                   {emptyText}
@@ -1799,11 +1799,11 @@
                 direction="row"
                 alignItems="center"
                 sx={{
-                  mb: 4,
+                  mb: 3,
                   border: `1px solid ${colors.border}`,
-                  borderRadius: "6px",
-                  pl: 2,
-                  pr: 1,
+                  borderRadius: "3px",
+                  pl: 1.5,
+                  pr: 0.5,
                 }}
               >
                 <TextField
@@ -1814,11 +1814,11 @@
                   onKeyDown={(e) => { if (e.key === "Enter") setQuery(q); }}
                   fullWidth
                   InputProps={{ disableUnderline: true }}
-                  sx={{ "& .MuiInputBase-input": { fontSize: 16, py: 1.5, color: colors.primaryText } }}
+                  sx={{ "& .MuiInputBase-input": { fontSize: 14, py: 1, color: colors.primaryText } }}
                 />
                 <Button
                   onClick={() => setQuery(q)}
-                  sx={{ fontSize: 13, fontWeight: 600, color: colors.primary, letterSpacing: 0.5 }}
+                  sx={{ fontSize: 11, fontWeight: 600, color: colors.primary, letterSpacing: 0.5 }}
                 >
                   SEARCH
                 </Button>
