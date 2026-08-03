@@ -193,6 +193,15 @@
       import WarningAmberIcon from "@mui/icons-material/WarningAmber";
       import HistoryToggleOffIcon from "@mui/icons-material/HistoryToggleOff";
       import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
+      // Left nav icons (approximate the current app's vertical navbar)
+      import PeopleIcon from "@mui/icons-material/People";
+      import InsightsIcon from "@mui/icons-material/Insights";
+      import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
+      import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+      import PsychologyIcon from "@mui/icons-material/Psychology";
+      import ContactPageOutlinedIcon from "@mui/icons-material/ContactPageOutlined";
+      import SettingsIcon from "@mui/icons-material/Settings";
+      import PolicyOutlinedIcon from "@mui/icons-material/PolicyOutlined";
 
       // ===================================================================
       // DESIGN TOKENS  (ported from ezrepo: src/styles/tokens.ts + theme.ts)
@@ -2186,6 +2195,116 @@
         { key: "documents", label: "Documents", icon: <FolderOpenIcon fontSize="small" /> },
       ];
 
+      const NAV_BLUE = "#3b6fd4"; // main-site header blue
+
+      // Real-site top header: Ez · Clients on the left, user on the right.
+      // Reproduced (not pixel-perfect) so reviewers recognize the shell.
+      const TopHeader = () => (
+        <Box
+          sx={{
+            height: 40,
+            flexShrink: 0,
+            backgroundColor: NAV_BLUE,
+            color: "#fff",
+            display: "flex",
+            alignItems: "center",
+            px: 1.5,
+            gap: 1.25,
+          }}
+        >
+          <Box
+            sx={{
+              backgroundColor: "rgba(255,255,255,0.18)",
+              borderRadius: "3px",
+              px: 0.75,
+              py: "1px",
+              fontSize: 13,
+              fontWeight: 700,
+              letterSpacing: 0.3,
+            }}
+          >
+            Ez
+          </Box>
+          <Typography sx={{ fontSize: 16, fontWeight: 400 }}>Clients</Typography>
+          <Box sx={{ flex: 1 }} />
+          <Chip
+            size="small"
+            label="Profile redesign · MVP prototype"
+            sx={{ height: 20, fontSize: 10, backgroundColor: "rgba(255,255,255,0.18)", color: "#fff" }}
+          />
+          <Typography sx={{ fontSize: 15, ml: 1.5 }}>Logan</Typography>
+        </Box>
+      );
+
+      // Real-site vertical icon nav rail (approximate). Purely decorative here
+      // so reviewers still see the surrounding navigation.
+      const NAV_ITEMS = [
+        { Icon: PeopleIcon, label: "Clients", active: true },
+        { Icon: AssignmentOutlinedIcon, label: "Tasks" },
+        { Icon: ContactPageOutlinedIcon, label: "Leads", badge: "9+" },
+        { Icon: InsightsIcon, label: "Reports" },
+        { Icon: ShieldOutlinedIcon, label: "Escalations" },
+        { Icon: AutoAwesomeIcon, label: "Assistant" },
+        { Icon: PsychologyIcon, label: "Knowledge" },
+        { Icon: ContactPageOutlinedIcon, label: "Directory" },
+        { Icon: SettingsIcon, label: "Settings" },
+        { Icon: PolicyOutlinedIcon, label: "Admin" },
+      ];
+
+      const AppNavRail = ({ onNav }) => (
+        <Box
+          sx={{
+            width: 48,
+            flexShrink: 0,
+            borderRight: `1px solid ${colors.lightBorder}`,
+            backgroundColor: "#fff",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            py: 1,
+            gap: 0.5,
+            overflow: "hidden",
+          }}
+        >
+          {NAV_ITEMS.map((item, i) => (
+            <Tooltip key={i} title={item.label} placement="right">
+              <IconButton
+                onClick={() => onNav(item.label)}
+                sx={{
+                  borderRadius: "6px",
+                  color: item.active ? NAV_BLUE : "#5f6368",
+                  backgroundColor: item.active ? "#eaf0fb" : "transparent",
+                  "&:hover": { backgroundColor: "#f1f3f5" },
+                }}
+              >
+                <Badge
+                  badgeContent={item.badge}
+                  color="error"
+                  sx={{ "& .MuiBadge-badge": { fontSize: 8, height: 14, minWidth: 14 } }}
+                >
+                  <item.Icon fontSize="small" />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+          ))}
+          <Box sx={{ flex: 1 }} />
+          {/* dialer + presence + info, like the current app's bottom of rail */}
+          <Tooltip title="Dialer" placement="right">
+            <IconButton onClick={() => onNav("Dialer")} sx={{ color: "#5f6368", borderRadius: "6px" }}>
+              <Badge badgeContent="4" color="error" sx={{ "& .MuiBadge-badge": { fontSize: 8, height: 14, minWidth: 14 } }}>
+                <DialpadIcon fontSize="small" />
+              </Badge>
+            </IconButton>
+          </Tooltip>
+          <Box sx={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: colors.green, my: 0.5 }} />
+          <Tooltip title="About" placement="right">
+            <IconButton onClick={() => onNav("About")} sx={{ color: "#9aa0a6", borderRadius: "6px" }}>
+              <InfoOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      );
+
       function App() {
         const [tab, setTab] = useState("overview");
         const [tasks, setTasks] = useState(TASKS);
@@ -2306,31 +2425,19 @@
 
         return (
           <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-            {/* Top bar */}
-            <Box
-              sx={{
-                height: 44,
-                flexShrink: 0,
-                display: "flex",
-                alignItems: "center",
-                px: 2,
-                borderBottom: `1px solid ${colors.lightBorder}`,
-                gap: 1.5,
-              }}
-            >
-              <Typography sx={{ fontSize: 15, fontWeight: 700, color: colors.primary, letterSpacing: 0.5 }}>ez</Typography>
-              <Divider orientation="vertical" flexItem sx={{ borderColor: colors.lightBorder }} />
-              <Typography sx={{ fontSize: 13, color: colors.labelText }}>Client Profile</Typography>
-              <Box sx={{ flex: 1 }} />
-              <Chip size="small" label="MVP" sx={{ fontSize: 10, height: 20, backgroundColor: "#F3FAFF", color: colors.primary }} />
-            </Box>
+            {/* Real-site top header */}
+            <TopHeader />
 
-            {/* Body: left sidebar | center tabs | right pane */}
-            <Box sx={{ flex: 1, display: "flex", minHeight: 0, position: "relative" }}>
-              <LeftSidebar
-                onStartCall={() => setToast("Calling is handled by the dialer app in this prototype")}
-                onStartText={() => setToast("Texting is stubbed in this prototype")}
-              />
+            {/* Nav rail | client-profile app */}
+            <Box sx={{ flex: 1, display: "flex", minHeight: 0 }}>
+              <AppNavRail onNav={(label) => setToast(label + " — part of the main app (outside this prototype)")} />
+
+              {/* Client profile: left sidebar | center tabs | right pane */}
+              <Box sx={{ flex: 1, display: "flex", minHeight: 0, position: "relative" }}>
+                <LeftSidebar
+                  onStartCall={() => setToast("Calling is handled by the dialer app in this prototype")}
+                  onStartText={() => setToast("Texting is stubbed in this prototype")}
+                />
 
               {/* Center */}
               <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
@@ -2407,6 +2514,7 @@
                   <CallDetailPane call={pane.data} onClose={closePane} />
                 )}
               </RightPane>
+              </Box>
             </Box>
 
             <Snackbar
