@@ -462,6 +462,10 @@
         age: 72,
         dob: "1953-04-18",
         pronouns: "she/her",
+        // Free-form background the guide keeps to remember the person behind
+        // the structured data. Deliberately longer than 3 lines.
+        bio:
+          "Goes by \"Dot.\" Retired elementary school librarian; sharp and independent, proud of living on her own. Widowed in 2019 — husband Frank. Two kids: Susan (daughter, primary caregiver, lives 15 min away) and James (son, out of state). Loves crossword puzzles, her cat Biscuit, and Sunday calls with grandkids.\n\nHard of hearing in her right ear — speak up and confirm she caught details. Prefers afternoon calls; mornings are slow for her. Very anxious about money and \"being a burden,\" so frame costs gently. Devout, attends St. Mary's; faith community is a big support.",
         phones: [
           { label: "Mobile", number: "(415) 555-0182" },
           { label: "Home", number: "(415) 555-7741" },
@@ -1008,7 +1012,45 @@
         </Stack>
       );
 
-      const LeftSidebar = ({ onStartCall, onStartText }) => (
+      // Bio preview: clamps to 3 lines; shows "Open bio" only when it overflows.
+      const SidebarBio = ({ bio, onOpen }) => {
+        const ref = useRef(null);
+        const [truncated, setTruncated] = useState(false);
+        useEffect(() => {
+          const el = ref.current;
+          if (el) setTruncated(el.scrollHeight - 1 > el.clientHeight);
+        }, [bio]);
+        if (!bio) return null;
+        return (
+          <Box sx={{ mt: 1.25 }}>
+            <Typography
+              ref={ref}
+              sx={{
+                fontSize: 12.5,
+                color: colors.secondaryText,
+                lineHeight: 1.5,
+                whiteSpace: "pre-wrap",
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {bio}
+            </Typography>
+            {truncated && (
+              <ButtonBase
+                onClick={onOpen}
+                sx={{ mt: 0.25, fontSize: 11.5, fontWeight: 600, color: colors.primary }}
+              >
+                Open bio
+              </ButtonBase>
+            )}
+          </Box>
+        );
+      };
+
+      const LeftSidebar = ({ onStartCall, onStartText, bio, onOpenBio }) => (
         <Box
           sx={{
             width: 300,
@@ -1022,18 +1064,12 @@
         >
           {/* Identity header */}
           <Box sx={{ p: 2.5, borderBottom: `1px solid ${colors.lightBorder}` }}>
-            <Stack direction="row" spacing={1.5} alignItems="center">
-              <UserAvatar
-                name={CLIENT.name}
-                colorSeed={CLIENT.name}
-                sx={{ width: 48, height: 48, fontSize: 18 }}
-              />
-              <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontSize: 16, fontWeight: 700, color: colors.primaryText, lineHeight: 1.2 }}>
-                  {CLIENT.name}
-                </Typography>
-              </Box>
-            </Stack>
+            <Typography sx={{ fontSize: 16, fontWeight: 700, color: colors.primaryText, lineHeight: 1.2 }}>
+              {CLIENT.name}
+            </Typography>
+
+            {/* Bio — free-form background, clamped to 3 lines */}
+            <SidebarBio bio={bio} onOpen={onOpenBio} />
 
             {/* Top-level action buttons */}
             <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
@@ -2164,6 +2200,48 @@
         );
       };
 
+      // Client bio — a free-form background note, opened from the sidebar.
+      const BioPane = ({ bio, onChange, onClose }) => (
+        <>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ px: 2, py: 1.25, borderBottom: `1px solid ${colors.lightBorder}`, flexShrink: 0 }}
+          >
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <PersonOutlineIcon sx={{ fontSize: 18, color: colors.primary }} />
+              <Typography sx={{ fontSize: 14, fontWeight: 600, color: colors.primaryText }}>
+                Bio · {CLIENT.name}
+              </Typography>
+            </Stack>
+            <IconButton size="small" onClick={onClose}><CloseIcon fontSize="small" /></IconButton>
+          </Stack>
+          <Box sx={{ px: 2, pt: 1.5, pb: 2, display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+            <Typography sx={{ fontSize: 11.5, color: colors.labelText, mb: 1 }}>
+              What to remember about {CLIENT.preferredName} beyond the structured profile.
+            </Typography>
+            <Box sx={{ flex: 1, minHeight: 0, display: "flex" }}>
+              <TextField
+                variant="standard"
+                placeholder="Add background about this client…"
+                value={bio}
+                onChange={(e) => onChange(e.target.value)}
+                fullWidth
+                multiline
+                InputProps={{ disableUnderline: true }}
+                sx={{
+                  flex: 1,
+                  "& .MuiInputBase-root": { alignItems: "flex-start", height: "100%" },
+                  "& .MuiInputBase-input": { fontSize: 14, color: colors.primaryText, lineHeight: 1.6, height: "100% !important", overflow: "auto !important" },
+                  "& .MuiInputBase-input::placeholder": { color: colors.mutedText, opacity: 1 },
+                }}
+              />
+            </Box>
+          </Box>
+        </>
+      );
+
       const CallDetailPane = ({ call, onClose }) => {
         return (
           <>
@@ -2313,7 +2391,8 @@
         const [tasks, setTasks] = useState(TASKS);
         const [notes, setNotes] = useState(NOTES);
         const [calls, setCalls] = useState(CALLS);
-        // right pane: { type: 'callDetail' | 'taskDetail', data }
+        const [bio, setBio] = useState(CLIENT.bio);
+        // right pane: { type: 'callDetail' | 'bio' }
         const [pane, setPane] = useState(null);
         const [toast, setToast] = useState("");
         // Inline expand/edit state for the notes list. Multiple notes may be
@@ -2416,6 +2495,9 @@
         // Open a call record in the detail pane.
         const openComm = (item) => setPane({ type: "callDetail", data: item });
 
+        // Client bio opens in the right pane.
+        const openBio = () => setPane({ type: "bio" });
+
         // Tasks open in a separate window in the real app — stubbed here.
         const openTask = (task) => setToast("Opening task “" + task.title + "” in a new window");
 
@@ -2440,6 +2522,8 @@
                 <LeftSidebar
                   onStartCall={() => setToast("Calling is handled by the dialer app in this prototype")}
                   onStartText={() => setToast("Texting is stubbed in this prototype")}
+                  bio={bio}
+                  onOpenBio={openBio}
                 />
 
               {/* Center */}
@@ -2515,6 +2599,9 @@
                 )}
                 {showDetailPane && pane?.type === "callDetail" && (
                   <CallDetailPane call={pane.data} onClose={closePane} />
+                )}
+                {showDetailPane && pane?.type === "bio" && (
+                  <BioPane bio={bio} onChange={setBio} onClose={closePane} />
                 )}
               </RightPane>
               </Box>
