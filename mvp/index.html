@@ -1770,6 +1770,8 @@
         const byCat = (cat) =>
           matches.filter((n) => n.category === cat).sort((a, b) => b.updatedTs - a.updatedTs);
 
+        // Plain helper (NOT a component) — returns JSX so cards reconcile in
+        // place instead of remounting (which would drop focus while typing).
         const renderNote = (n) => (
           <NoteCard
             key={n.id}
@@ -1783,7 +1785,8 @@
           />
         );
 
-        const Section = ({ label, cat, emptyText }) => {
+        // Inlined (not a nested component) for the same reason.
+        const renderSection = (label, cat, emptyText) => {
           const items = byCat(cat);
           return (
             <Box sx={{ mb: 3 }}>
@@ -1849,8 +1852,8 @@
                 </Button>
               </Stack>
 
-              <Section label="Chronological" cat="chronological" emptyText="No chronological notes yet" />
-              <Section label="Research findings" cat="research" emptyText="No research findings yet" />
+              {renderSection("Chronological", "chronological", "No chronological notes yet")}
+              {renderSection("Research findings", "research", "No research findings yet")}
             </Box>
           </PanelWrap>
         );
