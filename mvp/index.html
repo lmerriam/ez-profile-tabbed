@@ -1930,8 +1930,48 @@
 
         return (
           <PanelWrap>
-            <Box sx={{ display: "grid", gridTemplateColumns: "minmax(260px, 320px) 1fr", gap: 3, alignItems: "start" }}>
-              {/* LEFT: communication settings + channels (from the original card) */}
+            <Box sx={{ display: "grid", gridTemplateColumns: "1fr minmax(260px, 320px)", gap: 3, alignItems: "start" }}>
+              {/* LEFT: call log */}
+              <Box>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                  <SectionLabel>Call log</SectionLabel>
+                  <Typography sx={mutedTextSx}>{callLog.length} calls</Typography>
+                </Stack>
+                {/* header row */}
+                <Stack
+                  direction="row"
+                  sx={{ px: 1.5, py: 1, borderBottom: `1px solid ${colors.border}` }}
+                >
+                  <Typography sx={{ ...tableHeaderLike, flex: 2.2, pr: 1 }}>Date</Typography>
+                  <Typography sx={{ ...tableHeaderLike, flex: 1.4, pr: 1 }}>Direction</Typography>
+                  <Typography sx={{ ...tableHeaderLike, flex: 1.4, pr: 1 }}>Outcome</Typography>
+                  <Typography sx={{ ...tableHeaderLike, flex: 1, textAlign: "right" }}>Duration</Typography>
+                </Stack>
+                {callLog.map((c) => (
+                  <Stack
+                    key={c.id}
+                    direction="row"
+                    alignItems="center"
+                    onClick={() => onOpen(c)}
+                    sx={{
+                      px: 1.5,
+                      py: 1.25,
+                      borderBottom: `1px solid ${colors.lightBorder}`,
+                      cursor: "pointer",
+                      "&:hover": { backgroundColor: colors.cardHoverBg },
+                    }}
+                  >
+                    <Typography sx={{ flex: 2.2, fontSize: 13, color: colors.primaryText, pr: 1 }}>{c.when}</Typography>
+                    <Box sx={{ flex: 1.4, pr: 1 }}>
+                      <CallDirection direction={c.direction} />
+                    </Box>
+                    <Typography sx={{ flex: 1.4, fontSize: 13, color: colors.secondaryText, pr: 1 }}>{c.outcome}</Typography>
+                    <Typography sx={{ flex: 1, fontSize: 13, color: colors.secondaryText, textAlign: "right" }}>{c.duration}</Typography>
+                  </Stack>
+                ))}
+              </Box>
+
+              {/* RIGHT: communication settings + channels (from the original card) */}
               <Stack spacing={2}>
                 <Box>
                   <SectionLabel sx={{ mb: 1 }}>Client communications</SectionLabel>
@@ -1979,46 +2019,6 @@
                   </Stack>
                 </Box>
               </Stack>
-
-              {/* RIGHT: call log */}
-              <Box>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                  <SectionLabel>Call log</SectionLabel>
-                  <Typography sx={mutedTextSx}>{callLog.length} calls</Typography>
-                </Stack>
-                {/* header row */}
-                <Stack
-                  direction="row"
-                  sx={{ px: 1.5, py: 1, borderBottom: `1px solid ${colors.border}` }}
-                >
-                  <Typography sx={{ ...tableHeaderLike, flex: 2.2, pr: 1 }}>Date</Typography>
-                  <Typography sx={{ ...tableHeaderLike, flex: 1.4, pr: 1 }}>Direction</Typography>
-                  <Typography sx={{ ...tableHeaderLike, flex: 1.4, pr: 1 }}>Outcome</Typography>
-                  <Typography sx={{ ...tableHeaderLike, flex: 1, textAlign: "right" }}>Duration</Typography>
-                </Stack>
-                {callLog.map((c) => (
-                  <Stack
-                    key={c.id}
-                    direction="row"
-                    alignItems="center"
-                    onClick={() => onOpen(c)}
-                    sx={{
-                      px: 1.5,
-                      py: 1.25,
-                      borderBottom: `1px solid ${colors.lightBorder}`,
-                      cursor: "pointer",
-                      "&:hover": { backgroundColor: colors.cardHoverBg },
-                    }}
-                  >
-                    <Typography sx={{ flex: 2.2, fontSize: 13, color: colors.primaryText, pr: 1 }}>{c.when}</Typography>
-                    <Box sx={{ flex: 1.4, pr: 1 }}>
-                      <CallDirection direction={c.direction} />
-                    </Box>
-                    <Typography sx={{ flex: 1.4, fontSize: 13, color: colors.secondaryText, pr: 1 }}>{c.outcome}</Typography>
-                    <Typography sx={{ flex: 1, fontSize: 13, color: colors.secondaryText, textAlign: "right" }}>{c.duration}</Typography>
-                  </Stack>
-                ))}
-              </Box>
             </Box>
           </PanelWrap>
         );
